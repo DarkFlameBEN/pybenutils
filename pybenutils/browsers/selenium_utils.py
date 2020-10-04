@@ -15,7 +15,7 @@ from selenium import webdriver
 from selenium.common.exceptions import WebDriverException, SessionNotCreatedException
 from selenium.webdriver.remote.remote_connection import LOGGER as SELENIUM_LOGGER
 from pybenutils.network.download_manager import download_url
-from pybenutils import get_logger
+from pybenutils.utils_logger.config_logger import get_logger
 
 logger = get_logger()
 

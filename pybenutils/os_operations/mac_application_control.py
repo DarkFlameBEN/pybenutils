@@ -2,7 +2,7 @@ import os
 import re
 import sys
 import time
-from pybenutils import get_logger
+from pybenutils.utils_logger.config_logger import get_logger
 
 if sys.platform != 'win32':
     from pybenutils.os_operations.mac_operations import get_bundle_id_by_name, run_apple_script

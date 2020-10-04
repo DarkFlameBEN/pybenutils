@@ -6,10 +6,10 @@ from glob import glob
 from boto.s3.key import Key
 from typing import List, Union
 from boto import log as boto_log
+from pybenutils.utils_logger.config_logger import get_logger
 from boto.exception import S3ResponseError
 from boto.s3.connection import S3Connection
 from multiprocessing.dummy import Pool as ThreadPool
-from pybenutils import get_logger
 from pybenutils.os_operations.files_and_directories import get_files_in_folder
 
 logger = get_logger()

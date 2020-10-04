@@ -3,9 +3,9 @@ import time
 from typing import List
 from getpass import getuser
 from psutil import NoSuchProcess
+from pybenutils.utils_logger.config_logger import get_logger
 from pybenutils.os_operations.process import ProcessHandler
 from pybenutils.os_operations.window_operations import get_hwnds_by_class, click_on_point
-from pybenutils import get_logger
 from pybenutils.browsers.windows_browsers_keywords import set_browser_url, close_browser, get_to_home_page, \
     open_browser_windows
 if sys.platform == 'win32':

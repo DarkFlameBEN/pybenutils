@@ -1,3 +1,4 @@
-"""Adding shortcuts to important functions"""
-from pybenutils.utils_logger.config_logger import get_logger
-from pybenutils.network.download_manager import download_url
+__author__ = 'Ben Moskovitch'
+__author_email__ = '"Ben Moskovitch" <darkflameben@gmail.com>'
+__maintainer__ = 'Ben Moskovitch'
+__version__ = '0.0.4'

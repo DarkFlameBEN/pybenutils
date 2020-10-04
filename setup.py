@@ -1,6 +1,7 @@
-from setuptools import setup
+from setuptools import setup, find_packages
 from codecs import open
 import platform
+import pybenutils
 
 
 with open(r'requirements.txt') as req_file:
@@ -22,12 +23,12 @@ if platform.release() == 'XP':
 
 setup(
     name='pybenutils',
-    version='0.0.2',
+    version=pybenutils.__version__,
     description='PyBEN Utilities repo',
     long_description='PyBEN Utilities repo',
     url='https://github.com/DarkFlameBEN/pybenutils.git',
-    author='Ben Moskovitch',
-    author_email='"Ben Moskovitch" <darkflameben@gmail.com>',
+    author=pybenutils.__author__,
+    author_email=pybenutils.__author_email__,
     license='MIT License',
     classifiers=[
         # "Development Status :: 1 - Planning",
@@ -44,5 +45,7 @@ setup(
         'Programming Language :: Python :: 3.7',
     ],
     install_requires=final_requirements_list,
+    include_package_data=True,
+    packages=find_packages(exclude=['tests']),
     python_requires='>3'
 )

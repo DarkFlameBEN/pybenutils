@@ -4,8 +4,8 @@ import time
 import psutil
 import subprocess
 from datetime import datetime
+from pybenutils.utils_logger.config_logger import get_logger
 from pybenutils.os_operations.window_operations import get_hwnd_by_class, get_hwnds_by_class, get_window_text
-from pybenutils import get_logger
 if sys.platform == 'win32':
     import win32gui
     import win32com.client

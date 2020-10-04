@@ -1,6 +1,6 @@
 import sys
 from typing import List, Union
-from pybenutils import get_logger
+from pybenutils.utils_logger.config_logger import get_logger
 if sys.platform == 'win32':
     import win32gui
     import win32api
