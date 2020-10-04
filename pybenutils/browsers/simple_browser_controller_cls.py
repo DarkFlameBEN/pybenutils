@@ -5,7 +5,7 @@ from getpass import getuser
 from psutil import NoSuchProcess
 from pybenutils.os_operations.process import ProcessHandler
 from pybenutils.os_operations.window_operations import get_hwnds_by_class, click_on_point
-from pybenutils.utils_logger.config_logger import get_logger
+from pybenutils import get_logger
 from pybenutils.browsers.windows_browsers_keywords import set_browser_url, close_browser, get_to_home_page, \
     open_browser_windows
 if sys.platform == 'win32':
@@ -14,7 +14,7 @@ if sys.platform == 'win32':
 else:
     from pybenutils.os_operations.mac_operations import run_apple_script
 
-logger = get_logger(__file__.__name__)
+logger = get_logger()
 
 
 def kill_all_browsers(browsers_list=('iexplore.exe', 'IEDriverServer.exe', 'chrome', 'firefox', 'chromedriver',

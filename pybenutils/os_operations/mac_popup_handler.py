@@ -2,11 +2,11 @@ import sys
 import time
 from platform import mac_ver
 from distutils.version import LooseVersion
-from pybenutils.utils_logger.config_logger import get_logger
+from pybenutils import get_logger
 from pybenutils.os_operations.mac_input_control import mouse_drag
 from pybenutils.os_operations.mac_application_control import ApplicationControl
 
-logger = get_logger(__file__.__name__)
+logger = get_logger()
 
 
 def handle_user_notification_center(*args):

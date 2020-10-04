@@ -1,9 +1,9 @@
 import os
 import subprocess
 import multiprocess
-from pybenutils.utils_logger.config_logger import get_logger
+from pybenutils import get_logger
 
-logger = get_logger(__file__.__name__)
+logger = get_logger()
 
 
 def get_network_services():

@@ -7,3 +7,5 @@ selenium
 multiprocess
 pynput
 boto
+pytest
+pytest-pep8

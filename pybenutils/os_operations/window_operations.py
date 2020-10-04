@@ -1,13 +1,13 @@
 import sys
 from typing import List, Union
-from pybenutils.utils_logger.config_logger import get_logger
+from pybenutils import get_logger
 if sys.platform == 'win32':
     import win32gui
     import win32api
     import win32process
     import win32con
 
-logger = get_logger(__file__.__name__)
+logger = get_logger()
 
 
 def is_process_running_by_path(file_path: str):

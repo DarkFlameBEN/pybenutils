@@ -2,7 +2,7 @@ import os
 import sys
 from subprocess import Popen
 from pybenutils.network.download_manager import download_url
-from pybenutils.utils_logger.config_logger import get_logger
+from pybenutils import get_logger
 
 logger = get_logger()
 

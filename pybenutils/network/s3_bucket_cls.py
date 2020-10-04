@@ -9,10 +9,10 @@ from boto import log as boto_log
 from boto.exception import S3ResponseError
 from boto.s3.connection import S3Connection
 from multiprocessing.dummy import Pool as ThreadPool
-from pybenutils.utils_logger.config_logger import get_logger
+from pybenutils import get_logger
 from pybenutils.os_operations.files_and_directories import get_files_in_folder
 
-logger = get_logger(__file__.__name__)
+logger = get_logger()
 lock = threading.Lock()
 boto_log.setLevel('WARNING')  # Added because boto prints passwords
 

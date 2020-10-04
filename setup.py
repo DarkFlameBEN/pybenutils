@@ -22,7 +22,7 @@ if platform.release() == 'XP':
 
 setup(
     name='pybenutils',
-    version='0.0.1.2',
+    version='0.0.2',
     description='PyBEN Utilities repo',
     long_description='PyBEN Utilities repo',
     url='https://github.com/DarkFlameBEN/pybenutils.git',

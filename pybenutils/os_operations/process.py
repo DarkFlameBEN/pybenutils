@@ -4,7 +4,7 @@ import psutil
 from psutil import AccessDenied
 from psutil import process_iter
 from typing import Callable, Any, List
-from pybenutils.utils_logger.config_logger import get_logger
+from pybenutils import get_logger
 
 logger = get_logger()
 
