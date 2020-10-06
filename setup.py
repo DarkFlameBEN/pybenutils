@@ -20,12 +20,16 @@ if platform.release() == 'XP':
     if psutil_index:
         final_requirements_list[psutil_index] = 'psutil==3.4.2'
 
+with open('README.md', 'r') as readme_file:
+    readme_content = readme_file.read()
+
 
 setup(
     name='pybenutils',
     version=pybenutils.__version__,
-    description='PyBEN Utilities repo',
-    long_description='PyBEN Utilities repo',
+    description='PyBEN Utilities repository',
+    long_description=readme_content,
+    long_description_content_type='text/markdown',
     url='https://github.com/DarkFlameBEN/pybenutils.git',
     author=pybenutils.__author__,
     author_email=pybenutils.__author_email__,
