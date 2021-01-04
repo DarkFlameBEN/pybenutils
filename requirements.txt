@@ -7,3 +7,4 @@ selenium
 multiprocess
 pynput
 boto
+paramiko
