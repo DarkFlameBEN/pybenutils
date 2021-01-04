@@ -1,6 +1,6 @@
 ### Deployment check list
 - Install deployment requirements
-  - > python -m pip install deploy_requirements.txt -U
+  - > python -m pip install -r deploy_requirements.txt -U
 - Test the package
   - > pytest .
   - > pytest . --pep8
