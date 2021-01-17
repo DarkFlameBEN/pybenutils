@@ -30,7 +30,7 @@ def download_url(url: str, file_path='', attempts=2, raise_failure=True, verify_
         try:
             if attempt > 1:
                 time.sleep(10)  # 10 seconds wait time between downloads
-            with requests.get(url, stream=True, verif=verify_ssl) as response:
+            with requests.get(url, stream=True, verify=verify_ssl) as response:
                 logger.debug(f'Response status code: {response.status_code}')
                 response.raise_for_status()
                 with open(file_path, 'wb') as out_file:
