@@ -7,13 +7,14 @@ from pybenutils.utils_logger.config_logger import get_logger
 logger = get_logger()
 
 
-def download_url(url: str, file_path='', attempts=2, raise_failure=True):
+def download_url(url: str, file_path='', attempts=2, raise_failure=True, verify_ssl=True):
     """Downloads a URL content into a file (with large file support by streaming)
 
     :param url: URL to download_url
     :param file_path: Local file name to contain the data downloaded
     :param attempts: Number of attempts
     :param raise_failure: Raise Exception on failure
+    :param verify_ssl: Verify the domain ssl
     :return: New file path. Empty string if the download_url failed
     """
     if not file_path:
@@ -29,7 +30,7 @@ def download_url(url: str, file_path='', attempts=2, raise_failure=True):
         try:
             if attempt > 1:
                 time.sleep(10)  # 10 seconds wait time between downloads
-            with requests.get(url, stream=True) as response:
+            with requests.get(url, stream=True, verif=verify_ssl) as response:
                 logger.debug(f'Response status code: {response.status_code}')
                 response.raise_for_status()
                 with open(file_path, 'wb') as out_file:
