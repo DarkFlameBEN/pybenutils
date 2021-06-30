@@ -34,7 +34,12 @@ def set_logger(logger_name):
     return logger
 
 
-def get_logger(logger_name=''):
+def get_logger(logger_name='main_logger'):
+    """Returns a logger object with a given title
+
+    :param logger_name: If empty the logger name will be based on the calling module
+    :return: Logger object
+    """
     if not logger_name:
         frame = inspect.stack()[1]
         module = inspect.getmodule(frame[0])
