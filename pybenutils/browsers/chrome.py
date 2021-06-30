@@ -22,6 +22,10 @@ def update_chrome_browser():
         logger.info('Chrome installer finished')
     else:
         download_url('https://dl.google.com/dl/chrome/mac/universal/stable/gcea/googlechrome.dmg')
-        subprocess.Popen(r'open /path/to/googlechrome.dmg && cp /volume/googlechrome/Google\ Chrome.app /Applications/',
-                         shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+
+        cmd = r'hdiutil attach googlechrome.dmg ' \
+              r'&& rm -R /Applications/Google Chrome.app ' \
+              r'&& cp -pPR "/Volumes/Google Chrome/Google Chrome.app" /Applications/'
+        p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
+        p.communicate()
     return True
