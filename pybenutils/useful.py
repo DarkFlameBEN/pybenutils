@@ -1,3 +1,8 @@
+from pybenutils.utils_logger.config_logger import get_logger
+
+logger = get_logger()
+
+
 def compare_nested_objects(obj1, obj2):
     """Compare two nested objects and returns the number of mismatched nodes between them
 
