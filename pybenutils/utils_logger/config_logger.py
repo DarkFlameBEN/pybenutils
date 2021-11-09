@@ -3,6 +3,7 @@ import sys
 import logging
 import inspect
 import logging.config
+import time
 from collections import defaultdict
 from logging.handlers import RotatingFileHandler
 
@@ -12,7 +13,7 @@ INITIALIZED = defaultdict(bool)
 def set_logger(logger_name):
     logger = logging.getLogger(logger_name)
     logger.setLevel(logging.DEBUG)
-
+    logging.Formatter.converter = time.localtime
     fh = RotatingFileHandler('{}.log'.format(logger_name), 'w+', encoding='utf-8')
     formatter = logging.Formatter(
         '[%(asctime)s] | %(module)-20s | %(funcName)-20s | %(levelname)-7s : %(message)s')
