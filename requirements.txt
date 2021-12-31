@@ -8,3 +8,9 @@ multiprocess
 pynput; sys_platform != 'linux'
 boto
 paramiko
+pysocks
+typing
+pypiwin32
+idna
+pyOpenSSL
+cryptography
