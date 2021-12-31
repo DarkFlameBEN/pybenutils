@@ -2,9 +2,15 @@ requests
 supertools
 boto3
 pywin32; sys_platform == 'win32'
+pypiwin32; sys_platform == 'win32'
 psutil
 selenium
 multiprocess
 pynput; sys_platform != 'linux'
 boto
 paramiko
+pysocks
+typing
+idna
+pyOpenSSL
+cryptography
