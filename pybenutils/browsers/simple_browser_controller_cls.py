@@ -18,7 +18,7 @@ logger = get_logger()
 
 
 def kill_all_browsers(browsers_list=('iexplore.exe', 'IEDriverServer.exe', 'chrome', 'firefox', 'chromedriver',
-                                     'safari', 'chromium', 'geckodriver'),
+                                     'safari', 'chromium', 'geckodriver', 'msedge'),
                       attempt_graceful_shutdown=True):
     """Closes and kills all the process sharing the given process names in the input list
 
@@ -34,7 +34,7 @@ def kill_all_browsers(browsers_list=('iexplore.exe', 'IEDriverServer.exe', 'chro
 
 
 def close_all_browsers(browsers_list=('iexplore.exe', 'IEDriverServer.exe', 'chrome', 'firefox', 'chromedriver',
-                                      'safari', 'chromium', 'geckodriver')):
+                                      'safari', 'chromium', 'geckodriver', 'msedge')):
     """Closes all the process sharing the given process names in the input list
 
     :param browsers_list: Browsers process name to kill
@@ -52,13 +52,14 @@ class SimpleBrowserController:
         """Initiates the class
 
         :param browser_name: In Windows, process name. In mac: Full application path OR one of the pre-supported apps.
-         Supported apps: safari, chrome, chromium, firefox
+         Supported apps: safari, chrome, chromium, firefox, msedge
         """
         process_names_mac_conversion_table = {
             'safari': '/Applications/Safari.app',
             'chrome': '/Applications/Google Chrome.app',
             'chromium': '/Users/{u_name}/Applications/Chromium.app'.format(u_name=getuser()),
-            'firefox': '/Applications/Firefox.app'
+            'firefox': '/Applications/Firefox.app',
+            'msedge': '/Applications/Microsoft Edge.app'
         }
         class_name_windows_conversion_table = {
             'chromedriver.exe': 'Chrome_WidgetWin_1',
@@ -66,7 +67,8 @@ class SimpleBrowserController:
             'firefox.exe': 'MozillaWindowClass',
             'geckodriver.exe': 'MozillaWindowClass',
             'iexplore.exe': 'IEFrame',
-            'IEDriverServer.exe': 'IEFrame'
+            'IEDriverServer.exe': 'IEFrame',
+            'msedge.exe': 'Chrome_WidgetWin_1'
         }
         self.browser_name = browser_name
         if sys.platform != 'win32' and browser_name in process_names_mac_conversion_table:

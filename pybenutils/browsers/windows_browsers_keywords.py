@@ -55,6 +55,10 @@ def open_browser_windows(browser: str, arguments=()):
             cmd.append(chromium_xp_path)
         else:
             raise Exception('Chromium installation folder could not be located on the machine')
+    elif browser == 'msedge':
+        frame_class = "Chrome_WidgetWin_1"
+        cmd += ["start", "msedge.exe"]
+        shell = True
     else:
         raise Exception('Browser {brw} is not yet supported'.format(brw=browser))
 
