@@ -280,8 +280,8 @@ class ApplicationControl:
         result = run_apple_script(cmd)
         if not result:
             return False
-        pos_x = result.split(",")[0].strip()
-        pos_y = result.split(",")[-1].split("\n")[0].strip()
+        pos_x = int(result.split(",")[0].strip())
+        pos_y = int(result.split(",")[-1].split("\n")[0].strip())
         return pos_x, pos_y
 
     def click_by_title(self, title, timeout=60, use_cache=True):
