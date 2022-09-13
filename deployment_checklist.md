@@ -5,7 +5,7 @@
   - > pytest .
   - > pytest . --pep8
 - Build the package
-  - > python setup.py sdist bdist_wheel
+  - > python setup.py sdist
 - README.md description test
  - > twine check dist/*
 - Deploy to repo (testpypi)
