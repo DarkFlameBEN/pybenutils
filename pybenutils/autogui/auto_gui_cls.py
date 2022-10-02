@@ -63,22 +63,30 @@ class AutoGui:
             return elements
 
         elif sys.platform == 'darwin':
-            raise Exception('Method not implemented for this OS')
+            return self.app.get_elements_in_view()
         else:
             raise Exception('Method not implemented for this OS')
 
     def get_object_details(self, text='', control_type=''):
-        elements = []
-        for element in self.find_objects(text, control_type):
-            element_info_dict = element.element_info.dump_window()
-            for element_info in dir(element.element_info):
-                if not element_info.startswith('_'):
-                    try:
-                        element_info_dict[element_info] = getattr(element.element_info, element_info)
-                    except Exception:
-                        pass
-            elements.append(element_info_dict)
-        return elements
+        if sys.platform == 'win32':
+            elements = []
+            for element in self.find_objects(text, control_type):
+                element_info_dict = element.element_info.dump_window()
+                for element_info in dir(element.element_info):
+                    if not element_info.startswith('_'):
+                        try:
+                            element_info_dict[element_info] = getattr(element.element_info, element_info)
+                        except Exception:
+                            pass
+                elements.append(element_info_dict)
+            return elements
+        elif sys.platform == 'darwin':
+            elements = []
+            for element in self.find_objects(text, control_type):
+                elements.append(element.__dict__())
+            return elements
+        else:
+            raise Exception('Method not implemented for this OS')
 
     def get_object_position_by_text(self, text):
         """Return position as tuple (xl, yt, xr, yb)"""

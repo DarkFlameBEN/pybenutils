@@ -177,7 +177,7 @@ class ApplicationControl:
             logger.error('Failed to get elements\' details')
             return
         if len(paths_list) != len(elements_details_dict_list):
-            logger.error('There\'s a Mismatch between the number of elemet\'s paths ({num_p}) and the number of '
+            logger.error('There\'s a Mismatch between the number of element\'s paths ({num_p}) and the number of '
                          'elements details ({num_d})'.format(num_p=len(paths_list),
                                                              num_d=len(elements_details_dict_list)))
             return
