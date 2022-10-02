@@ -76,7 +76,7 @@ class AutoGui:
                 if not element_info.startswith('_'):
                     try:
                         element_info_dict[element_info] = getattr(element.element_info, element_info)
-                    except NotImplemented:
+                    except Exception:
                         pass
             elements.append(element_info_dict)
         return elements
