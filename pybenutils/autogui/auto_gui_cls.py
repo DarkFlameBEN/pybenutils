@@ -70,10 +70,14 @@ class AutoGui:
     def get_object_details(self, text='', control_type=''):
         elements = []
         for element in self.find_objects(text, control_type):
-            element_info_dict = {}
+            element_info_dict = element.element_info.dump_window()
+            # element_info_dict = {}
             for element_info in dir(element.element_info):
                 if not element_info.startswith('_'):
-                    element_info_dict = element.element_info.dump_window()
+                    try:
+                        element_info_dict[element_info] = getattr(element.element_info, element_info)
+                    except NotImplemented:
+                        pass
             elements.append(element_info_dict)
         return elements
 
