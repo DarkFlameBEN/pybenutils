@@ -63,7 +63,11 @@ class AutoGui:
             return elements
 
         elif sys.platform == 'darwin':
-            return self.app.get_elements_in_view()
+            elements = self.app.get_elements_in_view()
+            if not text:
+                return elements
+            return [element for element in elements if text == element.__dict__()['value']]
+
         else:
             raise Exception('Method not implemented for this OS')
 
