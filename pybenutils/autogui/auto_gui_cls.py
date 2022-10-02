@@ -15,9 +15,9 @@ class AutoGui:
     def __init__(self, title, app_path, pywinauto_backend='uia'):
         """Unified interface to interact with Gui Elements
 
-        :param title:
-        :param app_path:
-        :param pywinauto_backend:
+        :param title: Window title
+        :param app_path: Application/Exe path
+        :param pywinauto_backend: A name of used back-end in Windows OS (values: "win32", "uia")
         """
         self.title = title
         self.app_path = app_path
@@ -70,8 +70,11 @@ class AutoGui:
     def get_object_details(self, text='', control_type=''):
         elements = []
         for element in self.find_objects(text, control_type):
-            elements.append(
-                {i: getattr(element.element_info, i) for i in dir(element.element_info) if not i.startswith('_')})
+            element_info_dict = {}
+            for element_info in dir(element.element_info):
+                if not element_info.startswith('_'):
+                    element_info_dict = element.element_info.dump_window()
+            elements.append(element_info_dict)
         return elements
 
     def get_object_position_by_text(self, text):
