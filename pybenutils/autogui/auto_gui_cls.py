@@ -71,7 +71,6 @@ class AutoGui:
         elements = []
         for element in self.find_objects(text, control_type):
             element_info_dict = element.element_info.dump_window()
-            # element_info_dict = {}
             for element_info in dir(element.element_info):
                 if not element_info.startswith('_'):
                     try:
