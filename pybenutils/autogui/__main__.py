@@ -6,7 +6,7 @@ print(sys.argv)
 parser = argparse.ArgumentParser(description='PyBenAutoGui - Class to automate cross platform GUI interactions.')
 parser.add_argument('-t', '--title', help='Window title')
 parser.add_argument('-a', '--app_path', help='Application/Exe path')
-parser.add_argument('-b', '--pywinauto_backend', default='win32', nargs='?',
+parser.add_argument('-b', '--pywinauto_backend', default='uia', required=False,
                     help='A name of used back-end in Windows OS (values: "win32", "uia")')
 parser.add_argument('-c', '--command', default='uia',
                     help='Function name to execute in the AutoGui Class')
