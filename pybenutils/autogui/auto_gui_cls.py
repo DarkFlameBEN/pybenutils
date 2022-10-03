@@ -15,9 +15,9 @@ class AutoGui:
     def __init__(self, title, app_path, pywinauto_backend='uia'):
         """Unified interface to interact with Gui Elements
 
-        :param title:
-        :param app_path:
-        :param pywinauto_backend:
+        :param title: Window title
+        :param app_path: Application/Exe path
+        :param pywinauto_backend: A name of used back-end in Windows OS (values: "win32", "uia")
         """
         self.title = title
         self.app_path = app_path
@@ -37,6 +37,7 @@ class AutoGui:
         self.elements = self.find_objects()
 
     def click_on_text(self, text: str):
+        """Clicks on text object location using pyautogui"""
         cord = self.get_object_position_by_text(text)
         self.focus_on_window()
         pyautogui.FAILSAFE = False
@@ -45,9 +46,9 @@ class AutoGui:
     def find_objects(self, text='', control_type=''):
         """Returns an iterable containing the matching object
 
-        :param text:
-        :param control_type:
-        :return:
+        :param text: Text to search, In windows can also be the automation_id
+        :param control_type: Filter by control type
+        :return: An iterable containing the matching object
         """
         if sys.platform == 'win32':
             elements = []
@@ -63,19 +64,43 @@ class AutoGui:
             return elements
 
         elif sys.platform == 'darwin':
-            raise Exception('Method not implemented for this OS')
+            elements = self.app.get_elements_in_view()
+            if not text:
+                return elements
+            return [element for element in elements if text == element.__dict__()['value']]
+
         else:
             raise Exception('Method not implemented for this OS')
 
     def get_object_details(self, text='', control_type=''):
-        elements = []
-        for element in self.find_objects(text, control_type):
-            elements.append(
-                {i: getattr(element.element_info, i) for i in dir(element.element_info) if not i.startswith('_')})
-        return elements
+        """Returns an iterable containing dicts of matching objects properties
+
+        :param text: Text to search, In windows can also be the automation_id
+        :param control_type: Filter by control type
+        :return: An iterable containing dicts of matching objects properties
+        """
+        if sys.platform == 'win32':
+            elements = []
+            for element in self.find_objects(text, control_type):
+                element_info_dict = element.element_info.dump_window()
+                for element_info in dir(element.element_info):
+                    if not element_info.startswith('_'):
+                        try:
+                            element_info_dict[element_info] = getattr(element.element_info, element_info)
+                        except Exception:
+                            pass
+                elements.append(element_info_dict)
+            return elements
+        elif sys.platform == 'darwin':
+            elements = []
+            for element in self.find_objects(text, control_type):
+                elements.append(element.__dict__())
+            return elements
+        else:
+            raise Exception('Method not implemented for this OS')
 
     def get_object_position_by_text(self, text):
-        """Return position as tuple (xl, yt, xr, yb)"""
+        """Return position as tuple (xl, yt, xr, yb) in windows / (x, y) in mac"""
         if sys.platform == 'win32':
             pos = self.get_object_details(text)[0]['rectangle']
             return pos.left, pos.top, pos.right, pos.bottom
@@ -85,6 +110,7 @@ class AutoGui:
             raise Exception('Method not implemented for this OS')
 
     def focus_on_window(self):
+        """Focus on the app window - bring to front"""
         if sys.platform == 'win32':
             self.main_window.set_focus()
         elif sys.platform == 'darwin':
