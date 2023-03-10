@@ -418,10 +418,48 @@ class FirefoxDriver(webdriver.Firefox, DriverTools):
                 zip_ref.extractall(web_drivers_folder_path)
         elif file_ext == '.gz':
             with tarfile.open(installer_file_name, "r:gz") as tar:
-                tar.extractall(web_drivers_folder_path)
+                def is_within_directory(directory, target):
+                    
+                    abs_directory = os.path.abspath(directory)
+                    abs_target = os.path.abspath(target)
+                
+                    prefix = os.path.commonprefix([abs_directory, abs_target])
+                    
+                    return prefix == abs_directory
+                
+                def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+                
+                    for member in tar.getmembers():
+                        member_path = os.path.join(path, member.name)
+                        if not is_within_directory(path, member_path):
+                            raise Exception("Attempted Path Traversal in Tar File")
+                
+                    tar.extractall(path, members, numeric_owner=numeric_owner) 
+                    
+                
+                safe_extract(tar, web_drivers_folder_path)
         elif file_ext == '.tar':
             with tarfile.open(installer_file_name, "r:") as tar:
-                tar.extractall(web_drivers_folder_path)
+                def is_within_directory(directory, target):
+                    
+                    abs_directory = os.path.abspath(directory)
+                    abs_target = os.path.abspath(target)
+                
+                    prefix = os.path.commonprefix([abs_directory, abs_target])
+                    
+                    return prefix == abs_directory
+                
+                def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
+                
+                    for member in tar.getmembers():
+                        member_path = os.path.join(path, member.name)
+                        if not is_within_directory(path, member_path):
+                            raise Exception("Attempted Path Traversal in Tar File")
+                
+                    tar.extractall(path, members, numeric_owner=numeric_owner) 
+                    
+                
+                safe_extract(tar, web_drivers_folder_path)
         else:
             logger.error(f'Extraction method for file {installer_file_name} is not implemented')
             return False
