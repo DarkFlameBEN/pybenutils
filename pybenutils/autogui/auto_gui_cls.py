@@ -21,6 +21,11 @@ class AutoGui:
         """
         self.title = title
         self.app_path = app_path
+        assert title or app_path, 'Please provide a title or application path to connect to.\n' \
+                                  '\n----------\n' \
+                                  'Run "python(3) -m pybenutils.autogui -h" for more information.\n' \
+                                  'Run "python(3) -m pybenutils.autogui -eh" for even more information' \
+                                  '\n----------\n'
         if sys.platform == 'win32':
             self.app = application.Application(backend=pywinauto_backend)
             try:

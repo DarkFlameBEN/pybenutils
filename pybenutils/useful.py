@@ -1,3 +1,5 @@
+from typing import List
+
 from pybenutils.utils_logger.config_logger import get_logger
 
 logger = get_logger()
@@ -54,3 +56,25 @@ def compare_nested_objects(obj1, obj2):
                 if value_of_obj1_key != obj2[obj1_key]:
                     total_of_mismatched_found += compare_nested_objects(obj1[obj1_key], obj2[obj1_key])
     return total_of_mismatched_found
+
+
+def smart_cmd_input_eval(input_params: List):
+    """Evaluate the given input list (sys.argv[:]) and returns (unnamed_params_list, named_params_dict)"""
+    unnamed_params_list = []
+    named_params_dict = {}
+    for i in input_params:
+        if '=' in i:
+            key = i.split('=', 1)[0]
+            value = i.split('=', 1)[-1]
+            if value.lower() in ['yes', 'true']:
+                value = True
+            elif value.lower() in ['no', 'false']:
+                value = False
+            try:
+                value = eval(value)
+            except Exception:
+                pass
+            named_params_dict[key] = value
+        else:
+            unnamed_params_list.append(i)
+    return unnamed_params_list, named_params_dict
