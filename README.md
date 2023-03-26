@@ -2,22 +2,28 @@
 PyBEN Utilities repository, Contains a variety of useful methods and classes designed to allow easy access to high level operations 
 
 ### Installation
+Win:
 > python -m pip install pybenutils -U
+
+macOS:
 > python3 -m pip install pybenutils -U
 
 ### AutoGUI module
 PyBenAutoGui - Class to automate cross platform GUI interactions.
 ```
-options:
-  -h, --help            show this help message and exit
-  -t TITLE, --title TITLE
-                        Window title
-  -a APP_PATH, --app_path APP_PATH
-                        Application/Exe path
-  -b PYWINAUTO_BACKEND, --pywinauto_backend PYWINAUTO_BACKEND
-                        A name of used back-end in Windows OS (values: "win32", "uia")
-  -c COMMAND, --command COMMAND
-                        Function name to execute in the AutoGui Class
+options:                                                                                                                   
+  -h, --help            show this help message and exit                                                                    
+  -t TITLE, --title TITLE                                                                                                  
+                        Window title                                                                                       
+  -a APP_PATH, --app_path APP_PATH                                                                                         
+                        Application/Exe path                                                                               
+  -b PYWINAUTO_BACKEND, --pywinauto_backend PYWINAUTO_BACKEND                                                              
+                        A name of used back-end in Windows OS (values: "win32", "uia")                                     
+  -c COMMAND, --command COMMAND                                                                                            
+                        Function name to execute in the AutoGui Class                                                      
+  -eh, --extra_help, --no-extra_help                                                                                       
+                        Display extra help about the class and its functions (default: False)
+
 ```
 
 > python -m pybenutils.autogui -t "Calculator" -a calc.exe -c get_object_details -b uia

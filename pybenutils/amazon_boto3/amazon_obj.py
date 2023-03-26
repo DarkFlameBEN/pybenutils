@@ -11,7 +11,7 @@ class AmazonEC2Obj:
 
         :param aws_access_key_id: AWS access key id
         :param aws_secret_access_key: AWS secret access key
-        :param region_name: AWS region to connect too
+        :param region_name: AWS region to connect to
         :param dalek_mode: Debug mode (dr who reference)
         """
         self.ec2 = boto3.client('ec2',
