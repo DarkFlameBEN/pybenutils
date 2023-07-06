@@ -62,10 +62,10 @@ class ApplicationControl:
                 'tell application "{sys_app}" \n set application_id to (get the id of application "{app_name}" as ' \
                 'string) \n set process_name to name of (application processes where bundle identifier is ' \
                 'application_id) \n end tell'.format(sys_app=self.system_level_application_name, app_name=self.app_name)
-            name = run_apple_script(get_application_process_name_script).strip()
+            name = run_apple_script(get_application_process_name_script)
             if name:
                 logger.debug('Application process name is: {}'.format(name))
-                self.application_process_name = name
+                self.application_process_name = name.strip()
         return self.application_process_name
 
     def launch(self, arguments=None, timeout=60):
@@ -336,8 +336,8 @@ class ApplicationControl:
         cmd = 'tell application "{sys_app_name}" to (name of processes) contains "{app_name}"'.format(
             sys_app_name=self.system_level_application_name, app_name=app_name)
         time.sleep(1)
-        result = run_apple_script(cmd).strip()
-        return result == 'true'
+        result = run_apple_script(cmd)
+        return result and result.strip() == 'true'
 
     def is_window_content_accessible(self):
         """Checks if the application is alive its window content is accessible"""
