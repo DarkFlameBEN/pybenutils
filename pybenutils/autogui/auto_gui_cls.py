@@ -12,12 +12,13 @@ logger = get_logger()
 
 
 class AutoGui:
-    def __init__(self, title, app_path, pywinauto_backend='uia'):
+    def __init__(self, title: str, app_path: str, pywinauto_backend='uia', found_index=0):
         """Unified interface to interact with Gui Elements
 
         :param title: Window title
         :param app_path: Application/Exe path
         :param pywinauto_backend: A name of used back-end in Windows OS (values: "win32", "uia")
+        :param found_index: In case more than one matching items are found, select this index from the list (win only)
         """
         self.title = title
         self.app_path = app_path
@@ -29,7 +30,7 @@ class AutoGui:
         if sys.platform == 'win32':
             self.app = application.Application(backend=pywinauto_backend)
             try:
-                self.app.connect(title=self.title, timeout=10)
+                self.app.connect(title=self.title, timeout=10, found_index=found_index)
             except pywinautoTimeoutError:
                 logger.debug('Failed to connect to a live window. Will start a new instance')
                 self.app.start(self.app_path)
