@@ -58,10 +58,14 @@ class ApplicationControl:
 
     def get_application_process_name(self):
         if not self.application_process_name:
-            get_application_process_name_script = \
-                'tell application "{sys_app}" \n set application_id to (get the id of application "{app_name}" as ' \
-                'string) \n set process_name to name of (application processes where bundle identifier is ' \
-                'application_id) \n end tell'.format(sys_app=self.system_level_application_name, app_name=self.app_name)
+            get_application_process_name_script = f"""
+            tell application "{self.system_level_application_name}"
+                if (name of processes) contains appName then
+                    set application_id to (get the id of application "{self.app_name}" as string)
+                    set process_name to name of (application processes where bundle identifier is application_id)
+                end if
+            end tell
+            """
             name = run_apple_script(get_application_process_name_script)
             if name:
                 logger.debug('Application process name is: {}'.format(name))
