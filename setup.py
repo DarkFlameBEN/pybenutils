@@ -2,7 +2,11 @@ from setuptools import setup, find_packages
 from codecs import open
 import platform
 import pybenutils
+import os
 
+
+scriptFolder = os.path.dirname(os.path.realpath(__file__))
+os.chdir(scriptFolder)
 
 with open(r'requirements.txt') as req_file:
     requirements_list = [line.strip() for line in req_file.readlines() if
@@ -36,8 +40,8 @@ setup(
     license='MIT License',
     classifiers=[
         # "Development Status :: 1 - Planning",
-        "Development Status :: 2 - Pre-Alpha",
-        # "Development Status :: 3 - Alpha",
+        # "Development Status :: 2 - Pre-Alpha",
+        "Development Status :: 3 - Alpha",
         # "Development Status :: 4 - Beta",
         # "Development Status :: 5 - Production/Stable",
         # "Development Status :: 6 - Mature",
@@ -46,7 +50,12 @@ setup(
         'Topic :: Software Development :: Libraries',
         'License :: OSI Approved :: MIT License',
         # 'Programming Language :: Python :: 2.7',
+        'Operating System :: OS Independent',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
+        'Programming Language :: Python :: 3.11',
     ],
     install_requires=final_requirements_list,
     include_package_data=True,
