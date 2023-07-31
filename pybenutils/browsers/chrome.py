@@ -34,7 +34,3 @@ def update_chrome_browser():
         time.sleep(5)
         unmount_image_mac(mount_name, retry=2)
     return True
-
-
-if __name__ == '__main__':
-    update_chrome_browser()
