@@ -172,7 +172,7 @@ def unmount_image_mac(mount_name, retry=1):
     logger.debug(f"Going to unmount {dir_name}")
     for i in range(retry):
         time.sleep(i)
-        subprocess.run(command)
+        subprocess.run(command, shell=True)
         if not os.path.exists(dir_name):
             return True
         logger.error(f"Failed to unmount {dir_name}")
