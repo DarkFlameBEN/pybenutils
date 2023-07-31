@@ -1,5 +1,8 @@
+import errno
 import os
 import subprocess
+import time
+
 import multiprocess
 from pybenutils.utils_logger.config_logger import get_logger
 
@@ -124,3 +127,53 @@ def run_apple_script(cmd, timeout=300):
         stdout = stdout_queue_obj.get()
         # logger.debug('Apple script result is: {}'.format(stdout))
         return stdout
+
+
+def mount_image_mac(image_path, raise_on_error=False, space_in_name=True):
+    """Mount image in macOS
+
+    :param image_path: Path on local storage
+    :param raise_on_error: Raise Exception instead of writing error to log
+    :param space_in_name: Respect spaces in volume name
+    :returns Mounted volume name with removed prefix "/Volumes"
+    """
+    if raise_on_error and not os.path.exists(image_path):
+        raise FileNotFoundError(errno.ENOENT, os.strerror(errno.ENOENT), image_path)
+    mount_name = ''
+    command = f'hdiutil attach "{image_path}"'
+    res = os.popen(command).read()
+    if raise_on_error and not res:
+        logger.error(f"{command=} failed. {res=} is empty.")
+        raise Exception(os.popen(command+" 2>&1").read())
+    for line in res.splitlines():
+        for tab in line.split("\t") if space_in_name else line.split():
+            if tab.startswith('/Volumes'):
+                mount_name = tab.split('/')[-1]
+                logger.debug(f"{mount_name=}")
+                break
+    if raise_on_error and not mount_name:
+        logger.info(f"{res=}")
+        raise Exception(f"{command=} failed. mount_name not found.")
+    volume = os.path.join("/Volumes", mount_name)
+    if raise_on_error and not os.listdir(volume):
+        raise Exception(f"Mount point '{volume}' not not found.")
+    return mount_name
+
+
+def unmount_image_mac(mount_name, retry=1):
+    """Unmount image
+
+    :param mount_name:
+    :param retry:  how much times to retry before failure.
+    :returns success
+    """
+    dir_name = os.path.join("/Volumes", mount_name)
+    command = f'hdiutil detach "{dir_name}" -verbose'
+    logger.debug(f"Going to unmount {dir_name}")
+    for i in range(retry):
+        time.sleep(i)
+        subprocess.run(command, shell=True)
+        if not os.path.exists(dir_name):
+            return True
+        logger.error(f"Failed to unmount {dir_name}")
+    return False

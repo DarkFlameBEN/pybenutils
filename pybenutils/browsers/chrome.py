@@ -1,8 +1,10 @@
 import os
 import subprocess
 import sys
+import time
 from subprocess import Popen
 from pybenutils.network.download_manager import download_url
+from pybenutils.os_operations.mac_operations import mount_image_mac, unmount_image_mac
 from pybenutils.utils_logger.config_logger import get_logger
 
 logger = get_logger()
@@ -23,9 +25,12 @@ def update_chrome_browser():
     else:
         download_url('https://dl.google.com/dl/chrome/mac/universal/stable/gcea/googlechrome.dmg')
 
-        cmd = r'hdiutil attach googlechrome.dmg ' \
-              r'&& rm -R /Applications/Google Chrome.app ' \
-              r'&& cp -pPR "/Volumes/Google Chrome/Google Chrome.app" /Applications/'
+        mount_name = mount_image_mac('googlechrome.dmg')
+        time.sleep(5)
+        cmd = r'&& rm -R /Applications/Google Chrome.app ' \
+              fr'&& cp -pPR "/Volumes/{mount_name}/Google Chrome.app" /Applications/'
         p = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, stdin=subprocess.PIPE)
         p.communicate()
+        time.sleep(5)
+        unmount_image_mac(mount_name, retry=2)
     return True
