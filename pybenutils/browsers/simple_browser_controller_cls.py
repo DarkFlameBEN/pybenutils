@@ -157,22 +157,36 @@ class SimpleBrowserController:
         return self.hwnd
 
     def press_key_combination_on_mac_browser(self, key_command) -> bool:
-        """Attempts to press the requested command on the keyboard
+        """Attempts to press the requested command on the keyboard using Applescript
 
         :return: True if successful
         """
         try:
             if sys.platform == 'win32':
-                logger.warning('You are trying to use a mac function on a windows os')
+                # logger.warning('You are trying to use a mac function on a windows os')
                 return False
             else:
-                cmd = 'tell application "{app_name}" to activate\ntell application "System Events" to' \
-                      ' {key_combination}'.format(app_name=self.browser_name, key_combination=key_command)
+                cmd = f"""
+                set chExist to false
+                set appName to "{self.browser_name}"
+                tell application "System Events"
+                    if (name of processes) contains appName then
+                        set chExist to true
+                    end if
+                end tell
+                
+                if chExist then
+                    tell application appName to activate
+                    tell application "System Events" to {key_command}
+                    return true
+                end if
+                return false
+                """
                 result = run_apple_script(cmd)
                 if not result:
                     raise Exception('The Apple script has failed')
         except Exception as ex:
-            logger.error('Failed to press requested keys for error: {err}'.format(err=str(ex)))
+            logger.error('Failed to press requested keys {key} for error: {err}'.format(key=key_command, err=str(ex)))
             return False
         return True
 
