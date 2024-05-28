@@ -60,7 +60,7 @@ class ApplicationControl:
         if not self.application_process_name:
             get_application_process_name_script = f"""
             tell application "{self.system_level_application_name}"
-                if (name of processes) contains appName then
+                if (name of processes) contains "{self.app_name}" then
                     set application_id to (get the id of application "{self.app_name}" as string)
                     set process_name to name of (application processes where bundle identifier is application_id)
                 end if
