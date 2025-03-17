@@ -8,7 +8,7 @@ selenium
 multiprocess
 pynput; sys_platform != 'linux'
 boto
-paramiko
+paramiko; platform_machine != "ARM64"
 pysocks
 typing
 idna
