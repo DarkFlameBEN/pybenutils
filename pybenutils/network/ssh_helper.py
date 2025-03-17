@@ -1,10 +1,14 @@
 import os
+import platform
 import time
 import json
-import paramiko
 import tempfile
 import argparse
 import threading
+arch = platform.machine().lower()
+ARM_PROCESSOR = "arm" in arch or "aarch" in arch
+if not ARM_PROCESSOR:
+    import paramiko
 
 
 results_list = []
