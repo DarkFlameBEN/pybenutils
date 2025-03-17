@@ -19,8 +19,8 @@ class HttpDomainCertificateInfo(dict):
             'common_name': self.get_common_name(),
             'SAN': self.get_alt_names(),
             'issuer': self.get_issuer(),
-            'not_before': self.hostinfo.cert.not_valid_before,
-            'not_after': self.hostinfo.cert.not_valid_after
+            'not_before': self.hostinfo.cert.not_valid_before_utc,
+            'not_after': self.hostinfo.cert.not_valid_after_utc
         })
 
     @staticmethod
