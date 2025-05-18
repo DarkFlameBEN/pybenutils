@@ -465,3 +465,12 @@ class SimpleBrowserController:
             self.send_keyboard_keys('^{END}')
         else:
             self.press_key_combination_on_mac_browser('key code 119 using command down')
+
+    def send_keys_select_all(self):
+        """Send keys to "Select all" """
+        if sys.platform == 'win32':
+            self.send_keyboard_keys('^a')
+        elif sys.platform == 'darwin':
+            self.press_key_combination_on_mac_browser('key code 0 using command down')
+        else:
+            self.send_keyboard_keys('^a')
