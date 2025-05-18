@@ -1,7 +1,7 @@
 import sys
 import time
+from pathlib import Path
 from typing import List
-from getpass import getuser
 from psutil import NoSuchProcess
 from pybenutils.utils_logger.config_logger import get_logger
 from pybenutils.os_operations.process import ProcessHandler
@@ -55,9 +55,16 @@ class SimpleBrowserController:
          Supported apps: safari, chrome, chromium, firefox, msedge
         """
         process_names_mac_conversion_table = {
+            'safari': 'Safari',
+            'chrome': 'Google Chrome',
+            'chromium': 'Chromium',
+            'firefox': 'Firefox',
+            'msedge': 'Microsoft Edge'
+        }
+        mac_application_path_conversion_table = {
             'safari': '/Applications/Safari.app',
             'chrome': '/Applications/Google Chrome.app',
-            'chromium': '/Users/{u_name}/Applications/Chromium.app'.format(u_name=getuser()),
+            'chromium': '{home}/Applications/Chromium.app'.format(home=Path.home()),
             'firefox': '/Applications/Firefox.app',
             'msedge': '/Applications/Microsoft Edge.app'
         }
@@ -73,6 +80,7 @@ class SimpleBrowserController:
         self.browser_name = browser_name
         if sys.platform != 'win32' and browser_name in process_names_mac_conversion_table:
             self.browser_name = process_names_mac_conversion_table[browser_name]
+        self.mac_brwser_path = mac_application_path_conversion_table.get(browser_name, '')
 
         self.browser_process_name = self.browser_name
         if self.browser_name in ['chrome', 'chrome.exe', 'chromium', 'chromium.exe']:
