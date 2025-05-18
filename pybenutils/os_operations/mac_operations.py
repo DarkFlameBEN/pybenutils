@@ -94,39 +94,34 @@ def restore_default_proxy_settings(ethernet_name='Ethernet', admin_password='123
 
 def run_apple_script(cmd, timeout=300):
     """
-    run apple script and return result. the script will run in a different process so if python crashes we will not
-    fail. if the apple script doesn't return answer within the timeout, it will be terminated
-    :param cmd: apple script
-    :param timeout: timeout to end the apple script process
-    :return: apple script result if exist
+    Run an AppleScript command using subprocess with a timeout.
+    If the script exceeds the timeout, it is terminated.
+
+    :param cmd: AppleScript as a string
+    :param timeout: Timeout in seconds
+    :return: Output of AppleScript if successful, None otherwise
     """
-
-    def _run_apple_script_in_another_process(cmd, stdout_queue, stderr_queue):
-        apple_script_process = subprocess.Popen(['osascript'], shell=True, stdin=subprocess.PIPE,
-                                                stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
-        p_stdout, p_stderr = apple_script_process.communicate(cmd)
-        if p_stdout:
-            stdout_queue.put(p_stdout)
-        if p_stderr:
-            stderr_queue.put(p_stderr)
-
-    # logger.debug('Going to run the apple script: {}'.format(cmd))
-    stdout_queue_obj = multiprocess.Queue()
-    stderr_queue_obj = multiprocess.Queue()
-    p = multiprocess.Process(target=_run_apple_script_in_another_process, args=(cmd, stdout_queue_obj,
-                                                                                stderr_queue_obj))
-    p.start()
-    p.join(timeout=timeout)
-    if p.is_alive():
-        logger.error('The process that runs the apple script was terminated after reaching the timeout')
-        p.terminate()
-    if not stderr_queue_obj.empty():  # if stderr, log the error and return None
-        logger.error(stderr_queue_obj.get())
-        return
-    if not stdout_queue_obj.empty():
-        stdout = stdout_queue_obj.get()
-        # logger.debug('Apple script result is: {}'.format(stdout))
-        return stdout
+    try:
+        logger.debug('Running AppleScript: %s', cmd)
+        result = subprocess.run(
+            ['osascript'],
+            input=cmd,
+            text=True,
+            capture_output=True,
+            timeout=timeout
+        )
+        if result.stderr:
+            logger.error('AppleScript error: %s', result.stderr.strip())
+            return None
+        output = result.stdout.strip()
+        logger.debug('AppleScript result: %s', output)
+        return output if output else None
+    except subprocess.TimeoutExpired:
+        logger.error('AppleScript timed out after %s seconds', timeout)
+        return None
+    except Exception as e:
+        logger.exception(e)
+        return None
 
 
 def mount_image_mac(image_path, raise_on_error=False, space_in_name=True):

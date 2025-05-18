@@ -29,7 +29,7 @@ with open('README.md', 'r') as readme_file:
 
 setup(
     name='pybenutils',
-    version='4.0.0',
+    version='4.0.1',
     description='PyBEN Utilities repository',
     long_description=readme_content,
     long_description_content_type='text/markdown',
