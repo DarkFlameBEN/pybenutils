@@ -102,7 +102,7 @@ def run_apple_script(cmd, timeout=300):
     :return: Output of AppleScript if successful, None otherwise
     """
     try:
-        logger.debug('Running AppleScript: %s', cmd)
+        # logger.debug('Running AppleScript: %s', cmd)
         result = subprocess.run(
             ['osascript'],
             input=cmd,
