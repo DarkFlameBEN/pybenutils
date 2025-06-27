@@ -1,7 +1,7 @@
 import sys
 import time
+from pathlib import Path
 from typing import List
-from getpass import getuser
 from psutil import NoSuchProcess
 from pybenutils.utils_logger.config_logger import get_logger
 from pybenutils.os_operations.process import ProcessHandler
@@ -55,9 +55,16 @@ class SimpleBrowserController:
          Supported apps: safari, chrome, chromium, firefox, msedge
         """
         process_names_mac_conversion_table = {
+            'safari': 'Safari',
+            'chrome': 'Google Chrome',
+            'chromium': 'Chromium',
+            'firefox': 'Firefox',
+            'msedge': 'Microsoft Edge'
+        }
+        mac_application_path_conversion_table = {
             'safari': '/Applications/Safari.app',
             'chrome': '/Applications/Google Chrome.app',
-            'chromium': '/Users/{u_name}/Applications/Chromium.app'.format(u_name=getuser()),
+            'chromium': '{home}/Applications/Chromium.app'.format(home=Path.home()),
             'firefox': '/Applications/Firefox.app',
             'msedge': '/Applications/Microsoft Edge.app'
         }
@@ -73,6 +80,7 @@ class SimpleBrowserController:
         self.browser_name = browser_name
         if sys.platform != 'win32' and browser_name in process_names_mac_conversion_table:
             self.browser_name = process_names_mac_conversion_table[browser_name]
+        self.mac_browser_path = mac_application_path_conversion_table.get(browser_name, '')
 
         self.browser_process_name = self.browser_name
         if self.browser_name in ['chrome', 'chrome.exe', 'chromium', 'chromium.exe']:
@@ -84,7 +92,7 @@ class SimpleBrowserController:
         self.app_obj = None
         if sys.platform != 'win32':
             from pybenutils.os_operations.mac_application_control import ApplicationControl
-            self.app_obj = ApplicationControl(self.browser_name)
+            self.app_obj = ApplicationControl(self.mac_browser_path)
         else:
             self.class_name = class_name_windows_conversion_table[self.browser_process_name] if \
                 self.browser_process_name in class_name_windows_conversion_table else ''
@@ -339,7 +347,7 @@ class SimpleBrowserController:
                                         '{': '{{}', '}': '{}}', '[': '{[}', ']': '{]}'}
         if sys.platform == 'win32':
             command = ''.join([shell_send_keys_replacements.get(c, c) for c in command])
-            if 'firefox' in self.browser_name:
+            if 'firefox' in self.browser_name.lower():
                 self.send_keyboard_keys('^+{K}')
                 time.sleep(1)
                 self.set_focus_by_mouse_click()
@@ -350,7 +358,7 @@ class SimpleBrowserController:
                 self.press_enter_button()
                 time.sleep(1)
                 self.send_keyboard_keys('{F12}')
-            elif 'chrome' in self.browser_name:
+            elif 'chrome' in self.browser_name.lower():
                 self.send_keyboard_keys('^+{j}')
                 time.sleep(2)
                 self.send_keyboard_keys(command)
@@ -457,3 +465,12 @@ class SimpleBrowserController:
             self.send_keyboard_keys('^{END}')
         else:
             self.press_key_combination_on_mac_browser('key code 119 using command down')
+
+    def send_keys_select_all(self):
+        """Send keys to "Select all" """
+        if sys.platform == 'win32':
+            self.send_keyboard_keys('^a')
+        elif sys.platform == 'darwin':
+            self.press_key_combination_on_mac_browser('key code 0 using command down')
+        else:
+            self.send_keyboard_keys('^a')
