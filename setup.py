@@ -29,12 +29,13 @@ with open('README.md', 'r') as readme_file:
 
 setup(
     name='pybenutils',
-    version='4.0.1',
+    version='5.0.0',
     description='PyBEN Utilities repository',
     long_description=readme_content,
     long_description_content_type='text/markdown',
     url='https://github.com/DarkFlameBEN/pybenutils.git',
     author='Ben Moskovitch',
+    maintainer='Ben Moskovitch',
     author_email='"Ben Moskovitch" <darkflameben@gmail.com>',
     license='MIT License',
     classifiers=[
