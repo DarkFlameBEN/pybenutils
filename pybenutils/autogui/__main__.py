@@ -2,7 +2,7 @@ import sys
 import argparse
 
 from pybenutils.autogui.auto_gui_cls import AutoGui
-from pybenutils.useful import smart_cmd_input_eval
+from pybenutils.cli_tools import smart_cmd_input_eval
 
 print(sys.argv)
 parser = argparse.ArgumentParser(description='PyBenAutoGui - Class to automate cross platform GUI interactions.')
