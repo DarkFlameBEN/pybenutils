@@ -113,7 +113,7 @@ class AmazonEC2Obj:
         instances_list = self.get_instances(search_filter_dict)
 
         uid_list_for_deletion = []
-        script_time = datetime.datetime.utcnow()
+        script_time = datetime.datetime.now(datetime.UTC)
         seconds_to_keep_instances = minutes_to_keep_instances * 60
         for instance in instances_list:
             if excluded_tags and any(

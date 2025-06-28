@@ -141,6 +141,7 @@ def close_browser(browser: str) -> bool:
         return True
     else:
         logger.warn("Failed to close browser because \"{brw}\" is not yet supported".format(brw=browser))
+        return False
 
 
 def close_browser_by_hwnd(hwnd: int, handle_multiple_ie_tabs=True) -> bool:
