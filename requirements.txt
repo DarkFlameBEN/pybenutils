@@ -18,3 +18,4 @@ pyautogui
 pywinauto; sys_platform == 'win32'
 proxmoxer
 looseversion
+scp
