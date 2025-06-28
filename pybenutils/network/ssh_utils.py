@@ -4,6 +4,9 @@ import json
 import argparse
 from typing import List, Union
 from scp import SCPClient
+
+from pybenutils.useful import str2bool
+
 arch = platform.machine().lower()
 ARM_PROCESSOR = "arm" in arch or "aarch" in arch
 if not ARM_PROCESSOR:

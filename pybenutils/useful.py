@@ -56,3 +56,16 @@ def compare_nested_objects(obj1, obj2):
                 if value_of_obj1_key != obj2[obj1_key]:
                     total_of_mismatched_found += compare_nested_objects(obj1[obj1_key], obj2[obj1_key])
     return total_of_mismatched_found
+
+def str2bool(v) -> bool:
+    """Converts the given variable to boolean"""
+    if isinstance(v, bool): # test bool before int because bool is int
+        return v
+    if isinstance(v, int):
+        return bool(v)
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        return False
