@@ -1,5 +1,3 @@
-from typing import List
-
 from pybenutils.utils_logger.config_logger import get_logger
 
 logger = get_logger()
