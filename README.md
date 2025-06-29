@@ -80,7 +80,6 @@ class AutoGui(builtins.object)
 ```
 
 ### simple_browser_controller_cls.py
-
 #### SimpleBrowserController
 The Simple Browser Controller is a class to help directly control the host browser using keyboard inputs
 
@@ -103,7 +102,6 @@ br.send_keys_select_all()
 br.send_keyboard_keys('password')
 br.press_enter_button()
 ```
-
 #### kill_all_browsers
 Closes and kills all the process sharing the given process names in the input list
 
@@ -111,7 +109,6 @@ Closes and kills all the process sharing the given process names in the input li
 Closes all the process sharing the given process names in the input list
 
 ### selenium_utils.py
-
 #### get_driver(driver_name='chrome', qa_extension=False, **kwargs)
 ```
 Returns an active web driver instance
@@ -165,3 +162,53 @@ FirefoxDriver class new Kwargs
 - launch_attempts - [int] Permitted number of attempts to launch the selenium web driver
 - only_current_dir_for_binary - [Boolean] Assume the binary HAS to be in the current working directory
 ```
+
+### download_manager.py
+#### download_url
+```
+Downloads a URL content into a file (with large file support by streaming)
+
+:param url: URL to download_url
+:param file_path: Local file name to contain the data downloaded
+:param attempts: Number of attempts
+:param raise_failure: Raise Exception on failure
+:param verify_ssl: Verify the domain ssl
+:return: New file path. Empty string if the download_url failed
+```
+
+### ssh_utils.py
+#### run_commands
+```
+Execute the given commands trough ssh connection
+
+ Special commands:
+  - RECURSIVE-PUT file_path/folder_path [To local_path] - Copy the target from remote to local recursively
+  - GET file_path/folder_path [To local_path] - Copy the target from remote to local
+  - RECURSIVE-PUT file_path/folder_path TO remote_path - Sends file from local to remote recursively
+  - PUT file_path/folder_path TO remote_path - Sends file from local to remote
+
+:param server: Remote server ip
+:param username: Remote server username
+:param password: Remote server password
+:param commands: List of commands to execute
+:param stop_on_exception: Will stop executing commands if an exception occurred
+:param stop_on_error: Will stop executing commands if an execution returned an stderr string
+:return: List of return objects [{'ssh_stdin': str, 'ssh_stdout': str, 'ssh_stderr': str}]
+```
+
+### proxmox_utils.py
+#### Proxmox class
+Helper class based on Proxmoxer ProxmoxAPI making work a lot easier
+
+Some of the included functions:
+ - get_vms: Returns a full list of vms, or list with matching vms by id or name
+ - clone_vms
+ - migrate_vm_to_node
+ - delete_vm
+ - start_vm
+ - stop_vm
+ - snapshot handling
+ - and more ...
+
+### More functions
+There are a lot of additional functions i have created over the years. Look around and find some treasures

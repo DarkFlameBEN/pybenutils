@@ -29,7 +29,7 @@ with open('README.md', 'r') as readme_file:
 
 setup(
     name='pybenutils',
-    version='5.0.0',
+    version='6.0.0',
     description='PyBEN Utilities repository',
     long_description=readme_content,
     long_description_content_type='text/markdown',
@@ -38,6 +38,7 @@ setup(
     maintainer='Ben Moskovitch',
     author_email='"Ben Moskovitch" <darkflameben@gmail.com>',
     license='MIT License',
+    keywords=['python', 'proxmox', 'gui', 'utils', 'utilities', 'automation', 'automation-tools',],
     classifiers=[
         # "Development Status :: 1 - Planning",
         # "Development Status :: 2 - Pre-Alpha",
