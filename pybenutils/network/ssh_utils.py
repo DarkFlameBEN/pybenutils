@@ -84,49 +84,6 @@ def run_commands(server: str,
     return transition_responses
 
 
-def run_ssh_command(server: str, username: str, password: str, command: str, timeout: Union[int, None] = None, ignore_exit_code: bool = False) -> None:
-    """
-    Execute a single command on a remote server via SSH and log the output.
-
-    :param server: Remote server IP or hostname.
-    :param username: SSH username.
-    :param password: SSH password.
-    :param command: Command to execute.
-    :param timeout: Timeout for the command execution in seconds.
-    :param ignore_exit_code: If True, do not raise an exception for non-zero exit codes.
-    """
-    ssh = SSHClient()
-    ssh.set_missing_host_key_policy(AutoAddPolicy())
-
-    try:
-        logger.info(f"Connecting via SSH to {server} as {username}")
-        ssh.connect(server, username=username, password=password, timeout=timeout)
-
-        logger.info(f"[{server}] Executing command: {command}")
-        _, stdout, stderr = ssh.exec_command(command, timeout=timeout)
-
-        # Log stdout incrementally
-        for line in stdout:
-            logger.info(line.strip())
-
-        # Log stderr incrementally
-        for line in stderr:
-            logger.error(line.strip())
-
-        # Get the exit status
-        exit_status = stdout.channel.recv_exit_status()
-        logger.info(f"[{server}] Command executed with exit status: {exit_status}")
-
-        if exit_status != 0 and not ignore_exit_code:
-            raise RuntimeError(f"Command '{command}' failed with exit code {exit_status}")
-    except Exception as e:
-        logger.error(f"SSHException: {str(e)}")
-        raise
-    finally:
-        ssh.close()
-        logger.info(f"SSH connection to {server} closed")
-
-
 if __name__ == '__main__':
     print(sys.argv)
     parser = argparse.ArgumentParser()
