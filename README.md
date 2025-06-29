@@ -109,7 +109,7 @@ Closes and kills all the process sharing the given process names in the input li
 Closes all the process sharing the given process names in the input list
 
 ### selenium_utils.py
-#### get_driver(driver_name='chrome', qa_extension=False, **kwargs)
+#### get_driver
 ```
 Returns an active web driver instance
 :param driver_name: name of the driver:
