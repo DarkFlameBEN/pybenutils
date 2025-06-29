@@ -1,34 +1,130 @@
+import logging
 import os
+import pathlib
+import platform
 import re
+import subprocess
 import sys
 import time
-import zipfile
-import tarfile
-import platform
-import logging
-import requests
-from getpass import getuser
-from selenium.webdriver import ActionChains
-from selenium.webdriver.common.keys import Keys
 from typing import List
+
+import psutil
+from appium.webdriver import Remote
 from selenium import webdriver
-from selenium.common.exceptions import WebDriverException, SessionNotCreatedException
+from selenium.common.exceptions import WebDriverException, TimeoutException
+from selenium.webdriver import ActionChains
+from selenium.webdriver.chrome.service import Service
+from selenium.webdriver.common.by import By
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.edge.service import Service as EdgeService
+from selenium.webdriver.firefox.service import Service as FirefoxService
 from selenium.webdriver.remote.remote_connection import LOGGER as SELENIUM_LOGGER
-from pybenutils.network.download_manager import download_url
+from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.wait import WebDriverWait
+
+from pybenutils.browsers.simple_browser_controller_cls import kill_all_browsers
+from pybenutils.os_operations.process import kill_process_by_cmd
 from pybenutils.utils_logger.config_logger import get_logger
+from pybenutils.windows_registry import get_registry_value
 
 logger = get_logger()
 
 
-class DriverTools:
+chromedriver_name = 'chromedriver.exe' if sys.platform == 'win32' else 'chromedriver'
+chrome_name = 'chrome.exe' if sys.platform == 'win32' else "Google Chrome"
+
+
+def get_driver(driver_name='chrome', qa_extension=False, **kwargs):
+    """Returns an active web driver instance
+
+    :param driver_name: name of the driver:
+      - chrome (selenium)
+      - firefox (selenium)
+      - safari (selenium)
+      - headless_chrome (selenium)
+      - edge (selenium)
+      - ios_x - Example: ios_chrome (Appium)
+      - android_x - Example: android_chrome (Appium)
+    :param qa_extension: Whether to use qa extension
+    :return: web driver object (Selenium / Appium based)
+    """
+    extra_param = {}
+    if driver_name.lower() == 'chrome':
+        return ChromeDriver(qa_extension=qa_extension, **extra_param, **kwargs)
+    if driver_name.lower() == 'headless_chrome':
+        return ChromeDriver(headless=True, **extra_param, **kwargs)
+    elif driver_name.lower() == 'firefox':
+        return FirefoxDriver(**extra_param, **kwargs)
+    if driver_name.lower() == 'edge':
+        return ChromiumEdgeDriver(**extra_param, **kwargs)
+    elif driver_name.lower() == 'safari':
+        return SafariDriver(**kwargs)
+    elif driver_name.startswith('android') or driver_name.startswith('ios'):
+        return AppiumDriver(driver_name, **kwargs)
+    else:
+        raise Exception(f'Wrong or not supported driver name passed: "{driver_name}"')
+
+
+def get_chrome_version():
+    """Return Google Chrome version"""
+    major_version = ''
+    if sys.platform == 'win32':
+        # https://stackoverflow.com/questions/50880917/how-to-get-chrome-version-using-command-prompt-in-windows
+        try:
+            chrome_version = get_registry_value('HKEY_CURRENT_USER', r'Software\Google\Chrome\BLBeacon', 'version')
+            major_version = chrome_version.split('.')[0]
+        except Exception as err:
+            logger.exception(err)
+    else:
+        # https://stackoverflow.com/questions/44612147/how-to-find-the-chrome-browser-version-using-terminal-in-mac
+        try:
+            cmd = r'/Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --version'
+            res = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=True)
+            chrome_version = res.stdout
+            if chrome_version:
+                res = re.search(r'Google Chrome (\d+)\..*', chrome_version)
+                if res:
+                    major_version = res.group(1)
+        except Exception as err:
+            logger.exception(err)
+    return major_version
+
+
+def get_edge_chromium_version():
+    """Return Chromium Edge version"""
+    edge_version = ''
+    if sys.platform == 'win32':
+        # https://stackoverflow.com/a/62680159
+        try:
+            edge_version = get_registry_value('HKEY_CURRENT_USER', r'Software\Microsoft\Edge\BLBeacon', 'version')
+
+        except Exception as err:
+            logger.exception(err)
+    else:
+        # https://stackoverflow.com/questions/44612147/how-to-find-the-chrome-browser-version-using-terminal-in-mac
+        try:
+            cmd = r'/Applications/Microsoft\ Edge.app/Contents/MacOS/Microsoft\ Edge --version'
+            res = subprocess.run(cmd, capture_output=True, text=True, check=True, shell=True)
+            edge_version = res.stdout
+            if edge_version:
+                res = re.search(r'Microsoft Edge (\d+\.\d+\.\d+\.\d+).*', edge_version)
+                if res:
+                    edge_version = res.group(1)
+        except Exception as err:
+            logger.exception(err)
+    return edge_version
+
+
+class _DriverTools:
     """Meant to be inherited by webdriver sub-classes to add general tools and tricks, can be used on all browsers"""
+
     LOGGER_DEFAULT_LEVEL = 'DEBUG'
 
     def __bool__(self):
         """Returns True only if there are open browser windows / tabs"""
         return bool(self.get_number_open_tabs())
-
     # noinspection PyBroadException
+
     def get_number_open_tabs(self):
         """Returns the number of open browser windows and tabs"""
         try:
@@ -44,12 +140,12 @@ class DriverTools:
         self.set_selenium_log_level('WARNING')
         if 'about:blank' in str(self.current_url):
             return False
-        body = self.find_element_by_tag_name('body')
+        body = self.find_element(By.TAG_NAME, 'body')
         content = body.text
         self.set_selenium_log_level(original_log_level)
-        return not [i for i in ['This site can’t be reached',
+        return not [i for i in ['This site can\'t be reached',
                                 'Requests to the server have been blocked by an extension',
-                                '404. That’s an error.\nThe requested URL was not found on this server.'] if
+                                '404. That\'s an error.\nThe requested URL was not found on this server.'] if
                     i in content]
 
     @staticmethod
@@ -58,8 +154,22 @@ class DriverTools:
 
         :param log_level: log level (CRITICAL / FATAL / ERROR / WARNING / INFO / DEBUG / NOTSET)
         """
-        SELENIUM_LOGGER.setLevel(vars(logging)[log_level.upper()])
-        logging.getLogger("urllib3").setLevel(vars(logging)[log_level.upper()])
+        try:
+            SELENIUM_LOGGER.setLevel(vars(logging)[log_level.upper()])
+            logging.getLogger("urllib3").setLevel(vars(logging)[log_level.upper()])
+        except KeyError as ex:
+            logger.error(f'Encountered an error while trying to set log level: {ex}')
+            for known_log_level in ['DEBUG', 'INFO', 'ERROR', 'WARNING', 'NOTSET', 'FATAL', 'CRITICAL']:
+                # This is a fix to support custom unknown log levels
+                if log_level.upper().startswith(known_log_level):
+                    SELENIUM_LOGGER.setLevel(vars(logging)[known_log_level])
+                    logging.getLogger("urllib3").setLevel(vars(logging)[known_log_level])
+                    break
+            else:
+                logger.error('Failed to detect any relation to a known log level. Defaulting to DEBUG')
+                known_log_level = 'DEBUG'
+                SELENIUM_LOGGER.setLevel(vars(logging)[known_log_level])
+                logging.getLogger("urllib3").setLevel(vars(logging)[known_log_level])
 
     @staticmethod
     def get_logs_levels():
@@ -76,16 +186,20 @@ class DriverTools:
 
     def gracefully_quit(self):
         """Closing the chrome web driver window, than quitting the webdriver
-              - Support for missing Chrome window
-              - Support for missing driver object
+
+          - Support for missing Chrome window
+          - Support for missing driver object
         """
         if self:
             logger.debug('Closing driver')
             try:
                 self.close()
             except WebDriverException:
-                logger.error('The chrome browser window was closed unexpectedly')
-            self.quit()
+                logger.error('The browser window was closed unexpectedly')
+            try:
+                self.quit()
+            except WebDriverException:
+                logger.warning('The quit command failed on exception. Its possible the browser already closed.')
 
     def switch_to_first_tab(self):
         """Switches to control the first tab or window opened"""
@@ -136,12 +250,49 @@ class DriverTools:
                                    "return false;                            "
                                    , element)
 
+    def wait_until_visible_by(self, by: By, value, wait_time=10):
+        """Returns True if the element was found by the driver within the time limit (seconds)
 
-class ChromeDriver(webdriver.Chrome, DriverTools):
+        :param by: By object like By.XPATH
+        :param value: The searched value
+        :param wait_time: Time limit in seconds
+        :return: True if the element was found
+        """
+        try:
+            WebDriverWait(self, wait_time).until(
+                expected_conditions.visibility_of_element_located((by, value)))
+            return True
+        except TimeoutException:
+            return False
+
+    def wait_until_xpath_visible(self, xpath: str, wait_time=10):
+        """Returns True if the element was found by the driver within the time limit (seconds)
+
+        :param xpath: Element xpath string
+        :param wait_time: Time to wait for the object to be visible (seconds)
+        :return: True if visible
+        """
+        return self.wait_until_visible_by(By.XPATH, xpath, wait_time)
+    def click_on_xpath(self, xpath: str, wait_time=10):
+        """Tries to locate the given xpath and click on it. Returns True if successful
+
+        :param xpath: Element xpath string
+        :param wait_time: Time to wait for the object to be visible (seconds)
+        :return: True if successful
+        """
+        if not self.wait_until_xpath_visible(xpath, wait_time=wait_time):
+            return False
+        self.find_element(By.XPATH, xpath).click()
+        return True
+
+
+
+
+class ChromeDriver(webdriver.Chrome, _DriverTools):
     chrome_default_profile_path = None
     NEW_TAB_ADDRESS = 'chrome://newtab'
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, qa_extension=False, *args, **kwargs):
         """
         Creates a new instance of the chrome driver.
         Starts the service and then creates new instance of chrome driver.
@@ -154,18 +305,20 @@ class ChromeDriver(webdriver.Chrome, DriverTools):
          - log_level - [Str] Selenium and urllib3 log level (CRITICAL / FATAL / ERROR / WARNING / INFO / DEBUG / NOTSET)
          - launch_attempts - [int] Permitted number of attempts to launch the selenium web driver
          - headless - [Boolean] Open the Chrome instance without visible gui (--headless)
+         - incognito - [Boolean] Open the Chrome instance in incognito mode
+         - only_current_dir_for_binary - [Boolean] Assume the binary HAS to be in the current working directory
         ----------
-         - executable_path - path to the executable. If the default is used it assumes the executable is in the $PATH
-         - port - port you would like the service to run, if left as 0, a free port will be found.
+         - executable_path - Deprecated: path to the executable. If the default is used it assumes the executable is in the $PATH
+         - port - Deprecated: port you would like the service to run, if left as 0, a free port will be found.
          - options - this takes an instance of ChromeOptions
-         - service_args - List of args to pass to the driver service
-         - desired_capabilities - Dictionary object with non-browser specific
+         - service - Service object for handling the browser driver if you need to pass extra details
+         - service_args - Deprecated: List of args to pass to the driver service
+         - desired_capabilities - Deprecated: Dictionary object with non-browser specific
            capabilities only, such as "proxy" or "loggingPref".
-         - service_log_path - Where to log information from the driver.
-         - chrome_options - Deprecated argument for options
-         - keep_alive - Whether to configure ChromeRemoteConnection to use HTTP keep-alive.
+         - service_log_path - Deprecated: Where to log information from the driver.
+         - keep_alive - Deprecated: Whether to configure ChromeRemoteConnection to use HTTP keep-alive.
         """
-        self.launch_attempts = kwargs.pop('launch_attempts', 2)
+        self.launch_attempts = kwargs.pop('launch_attempts', 3)
         self._platform_release = platform.release()
 
         if kwargs.get('log_level'):
@@ -173,24 +326,34 @@ class ChromeDriver(webdriver.Chrome, DriverTools):
 
         self.__init_options_object(args, kwargs)
 
+        if kwargs.pop('only_current_dir_for_binary', False):
+            chromedriver_location = os.path.join(os.getcwd(), 'chromedriver{ext}'.format(
+                ext=".exe" if sys.platform == "win32" else ""))
+        else:
+            chromedriver_location = None
+        service_obj = Service(chromedriver_location) if chromedriver_location else None
+
         logger.info('Launching Chrome webdriver')
         last_exception = None
         for i in range(self.launch_attempts):
+            if i > 0:
+                time.sleep(10)  # time for the browsers to update if they need too
             try:
+                service_dict = {}
+                if service_obj:
+                    service_dict.update({'service': service_obj})
                 super().__init__(
                     *args,
-                    **{'desired_capabilities' if self._platform_release == 'XP' else 'options': self.options},
+                    **{'desired_caplities' if self._platform_release == 'XP' else 'options': self.options},
+                    **service_dict,
                     **kwargs
                 )
                 break
-            except WebDriverException as ex:
-                logger.error(ex)
-                last_exception = ex
-                if type(ex) == SessionNotCreatedException or "executable needs to be in PATH" in str(ex):
-                    self.update()
             except Exception as ex:
                 logger.error(ex)
                 last_exception = ex
+                kill_all_browsers('chrome')
+                time.sleep(1)
         else:
             raise last_exception
         logger.info('Chrome webdriver launched successfully')
@@ -207,14 +370,23 @@ class ChromeDriver(webdriver.Chrome, DriverTools):
 
         else:
             self.options = kwargs.pop('options', webdriver.ChromeOptions())
+            if sys.platform == 'darwin':
+                self.options.binary_location = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+
             if kwargs.pop('fullscreen', False):
                 self.options.add_argument('--start-maximized')
 
             if kwargs.pop('headless', False):
                 self.options.add_argument('--headless')
 
+            if kwargs.pop('incognito', False):
+                self.options.add_argument('--incognito')
+
             if kwargs.pop('default_user', False):
                 self.options.add_argument(f"user-data-dir={self.get_chrome_profile_path()}")
+            else:  # Only if anonymous window
+                prefs = {"download.default_directory": f'{os.getcwd()}{os.sep}'}  # IMPORTANT - ENDING SLASH V IMPORTANT
+                self.options.add_experimental_option("prefs", prefs)
 
             if kwargs.get('excludeSwitches'):
                 switches_to_exclude = kwargs.pop('excludeSwitches', [])
@@ -230,65 +402,19 @@ class ChromeDriver(webdriver.Chrome, DriverTools):
     def get_chrome_profile_path(self) -> str:
         """Returns the chrome default profile path"""
         if not self.chrome_default_profile_path:
-            local_user_name = getuser()
-            if sys.platform != 'win32':  # mac
-                path = f'/Users/{local_user_name}/Library/Application Support/Google/Chrome/'
-            elif self._platform_release == 'XP':  # Winxp path
+            if self._platform_release == 'XP':  # Winxp path
                 path = r'C:\Documents and Settings\automation\Local Settings\Application Data\Google\Chrome\User Data'
-            else:  # Win OS newer than xp
-                path = f'C:\\Users\\{local_user_name}\\AppData\\Local\\Google\\Chrome\\User Data'
+            elif sys.platform == 'win32': # Win OS newer than xp
+                path = f'{str(pathlib.Path.home())}\\AppData\\Local\\Google\\Chrome\\User Data'
+            elif sys.platform == 'darwin':  # Mac path
+                path = f'{str(pathlib.Path.home())}/Library/Application Support/Google/Chrome/'
+            else:  # Ubuntu
+                path = f'{str(pathlib.Path.home())}/.config/google-chrome'
             self.chrome_default_profile_path = path
         return self.chrome_default_profile_path
 
-    @staticmethod
-    def update(web_drivers_folder_path=''):
-        """Downloads the latest chrome webdriver
 
-        :param web_drivers_folder_path: Leave empty to download_url to the workspace
-        :return: True if downloaded successfully
-        """
-        # Handling output folder for the new webdriver file
-        if not web_drivers_folder_path:
-            web_drivers_folder_path = os.getcwd()
-        if not os.path.isdir(web_drivers_folder_path):
-            logger.error('The folder you are trying to download_url to does not exist. '
-                         'Please create it and add it to the system path to be recognised correctly')
-            return False
-
-        # Sorting which file to download_url depending on the OS
-        if sys.platform == 'win32':
-            web_driver_zip_file_name = 'chromedriver_win32.zip'
-        elif sys.platform == 'darwin':
-            web_driver_zip_file_name = 'chromedriver_mac64.zip'
-        else:
-            web_driver_zip_file_name = 'chromedriver_linux64.zip'
-
-        logger.info('Getting chrome driver latest stable version number from api')
-        for i in range(3):
-            try:
-                response = requests.get('http://chromedriver.storage.googleapis.com/LATEST_RELEASE')
-                if response.status_code < 400:
-                    latest_version = response.content.decode()
-                    break
-                else:
-                    logger.warning(f'Response status code: {response.status_code}')
-            except Exception as ex:
-                logger.error(ex)
-        else:
-            return False
-
-        logger.info(f'Downloading chrome driver version: {latest_version}')
-        download_url(f'http://chromedriver.storage.googleapis.com/{latest_version}/{web_driver_zip_file_name}')
-
-        logger.info(f'Extracting {web_driver_zip_file_name} to {web_drivers_folder_path}')
-        with zipfile.ZipFile(web_driver_zip_file_name, 'r') as zip_ref:
-            zip_ref.extractall(web_drivers_folder_path)
-
-        logger.info('Webdriver deployed successfully')
-        return True
-
-
-class FirefoxDriver(webdriver.Firefox, DriverTools):
+class FirefoxDriver(webdriver.Firefox, _DriverTools):
     NEW_TAB_ADDRESS = 'about:newtab'
 
     def __init__(self, *args, **kwargs):
@@ -315,26 +441,25 @@ class FirefoxDriver(webdriver.Firefox, DriverTools):
          - option_args - [List] of arguments to be added to options (options.add_argument(x))
          - log_level - [Str] Selenium and urllib3 log level (CRITICAL / FATAL / ERROR / WARNING / INFO / DEBUG / NOTSET)
          - launch_attempts - [int] Permitted number of attempts to launch the selenium web driver
+         - only_current_dir_for_binary - [Boolean] Assume the binary HAS to be in the current working directory
         -----------
-         - firefox_profile - Instance of ``FirefoxProfile`` object or a string.
-           If undefined, a fresh profile will be created in a temporary location on the system.
-         - firefox_binary - Instance of ``FirefoxBinary`` or full path to the Firefox binary.
+         - firefox_profile - IDeprecated: Instance of ``FirefoxProfile`` object or a string.
+          If undefined, a fresh profile will be created in a temporary location on the system.
+         - firefox_binary - Deprecated: Instance of ``FirefoxBinary`` or full path to the Firefox binary.
            If undefined, the system default Firefox installation will  be used.
-         - timeout - Time to wait for Firefox to launch when using the extension connection.
-         - capabilities - Dictionary of desired capabilities.
-         - proxy - The proxy settings to us when communicating with Firefox via the extension connection.
-         - executable_path - Full path to override which geckodriver binary to use for Firefox 47.0.1 and greater,
-           which defaults to picking up the binary from the system path.
+         - capabilities - Deprecated: Dictionary of desired capabilities.
+         - proxy -Deprecated - The proxy settings to use when communicating with Firefox via the extension connection.
+         - executable_path - Deprecated: Full path to override which geckodriver binary to use for Firefox 47.0.1
+          and greater, which defaults to picking up the binary from the system path.
          - options - Instance of ``options.Options``.
-         - service_log_path - Where to log information from the driver.
-         - firefox_options - Deprecated argument for options
-         - service_args - List of args to pass to the driver service
-         - desired_capabilities - alias of capabilities. In future versions of this library,
-           this will replace 'capabilities'. This will make the signature consistent with RemoteWebDriver.
-         - log_path - Deprecated argument for service_log_path
+         - service - (Optional) service instance for managing the starting and stopping of the driver.
+         - service_log_path - Deprecated: Where to log information from the driver.
+         - service_args - Deprecated: List of args to pass to the driver service
+         - desired_capabilities - Deprecated: alias of capabilities. In future versions of this library,
+         this will replace 'capabilities'. This will make the signature consistent with RemoteWebDriver.
          - keep_alive - Whether to configure remote_connection.RemoteConnection to use HTTP keep-alive.
         """
-        self.launch_attempts = kwargs.pop('launch_attempts', 2)
+        self.launch_attempts = kwargs.pop('launch_attempts', 3)
         self._platform_release = platform.release()
 
         if kwargs.get('log_level'):
@@ -345,127 +470,34 @@ class FirefoxDriver(webdriver.Firefox, DriverTools):
         for arg in kwargs.pop('option_args', []):
             self.options.add_argument(arg)
 
-        logger.info('Launching Chrome webdriver')
+        if kwargs.pop('only_current_dir_for_binary', False):
+            binary_location = os.path.join(os.getcwd(), 'geckodriver{ext}'.format(
+                ext=".exe" if sys.platform == "win32" else ""))
+        else:
+            binary_location = None
+        service_obj = FirefoxService(binary_location)
+
+        logger.info('Launching Firefox webdriver')
         last_exception = None
         for i in range(self.launch_attempts):
+            if i > 0:
+                time.sleep(10)  # time for the browsers to update if they need too
             try:
                 super().__init__(
                     *args,
-                    **{'desired_capabilities' if self._platform_release == 'XP' else 'options': self.options},
+                    **{'desired_capabilities' if self._platform_release == 'XP' else 'options': self.options,
+                       'service': service_obj},
                     **kwargs
                 )
                 break
-            except WebDriverException as ex:
-                logger.error(ex)
-                last_exception = ex
-                if type(ex) == SessionNotCreatedException or "executable needs to be in PATH" in str(ex):
-                    self.update()
             except Exception as ex:
                 logger.error(ex)
                 last_exception = ex
+                kill_all_browsers('firefox')
+                time.sleep(1)
         else:
             raise last_exception
         logger.info('Firefox webdriver launched successfully')
-
-    @staticmethod
-    def update(web_drivers_folder_path=''):
-        """Downloads the latest gecko (firefox) webdriver
-
-        :param web_drivers_folder_path: Leave empty to download_url to the workspace
-        :return: True if downloaded successfully
-        """
-        if not web_drivers_folder_path:
-            web_drivers_folder_path = os.getcwd()
-        if not os.path.isdir(web_drivers_folder_path):
-            logger.error('The folder you are trying to download_url to does not exist. '
-                         'Please create it and add it to the system path to be recognised correctly')
-            return False
-
-        # Creating a list of archive files appearing in this page to get the latest webdriver archive file name.
-        response = requests.get('https://github.com/mozilla/geckodriver/releases')
-        body = response.content.decode()
-        archives = []
-        for i in body.splitlines():
-            match = re.search('>(geckodriver-v.*)<', i)
-            if match:
-                archives.append(match.group(1))
-
-        if sys.platform == 'win32':
-            os_keyword = 'win{os_bit_count}'.format(
-                os_bit_count='64' if os.path.exists(r'C:\Program Files (x86)') else '32')
-        elif sys.platform == 'darwin':
-            os_keyword = 'mac'
-        else:
-            os_keyword = 'linux64'
-
-        for file_name in archives:
-            if os_keyword in file_name:
-                installer_file_name = file_name
-                installer_path = f'http://github.com/mozilla/geckodriver/releases/download/' \
-                                 f'{file_name.split("-")[1]}/{file_name}'
-                break
-        else:
-            logger.error('Failed to extract the appropriate web driver from the github gecko driver page')
-            return False
-
-        if not download_url(installer_path, raise_failure=False):
-            return False
-
-        file_ext = os.path.splitext(installer_file_name)[-1]
-        if file_ext == '.zip':
-            logger.info(f'Extracting {installer_file_name} to {web_drivers_folder_path}')
-            with zipfile.ZipFile(installer_file_name, 'r') as zip_ref:
-                zip_ref.extractall(web_drivers_folder_path)
-        elif file_ext == '.gz':
-            with tarfile.open(installer_file_name, "r:gz") as tar:
-                def is_within_directory(directory, target):
-                    
-                    abs_directory = os.path.abspath(directory)
-                    abs_target = os.path.abspath(target)
-                
-                    prefix = os.path.commonprefix([abs_directory, abs_target])
-                    
-                    return prefix == abs_directory
-                
-                def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
-                
-                    for member in tar.getmembers():
-                        member_path = os.path.join(path, member.name)
-                        if not is_within_directory(path, member_path):
-                            raise Exception("Attempted Path Traversal in Tar File")
-                
-                    tar.extractall(path, members, numeric_owner=numeric_owner) 
-                    
-                
-                safe_extract(tar, web_drivers_folder_path)
-        elif file_ext == '.tar':
-            with tarfile.open(installer_file_name, "r:") as tar:
-                def is_within_directory(directory, target):
-                    
-                    abs_directory = os.path.abspath(directory)
-                    abs_target = os.path.abspath(target)
-                
-                    prefix = os.path.commonprefix([abs_directory, abs_target])
-                    
-                    return prefix == abs_directory
-                
-                def safe_extract(tar, path=".", members=None, *, numeric_owner=False):
-                
-                    for member in tar.getmembers():
-                        member_path = os.path.join(path, member.name)
-                        if not is_within_directory(path, member_path):
-                            raise Exception("Attempted Path Traversal in Tar File")
-                
-                    tar.extractall(path, members, numeric_owner=numeric_owner) 
-                    
-                
-                safe_extract(tar, web_drivers_folder_path)
-        else:
-            logger.error(f'Extraction method for file {installer_file_name} is not implemented')
-            return False
-
-        logger.info('Webdriver deployed successfully')
-        return True
 
 
 def full_page_image(url, file_path, page_load_time=5):
@@ -484,7 +516,7 @@ def full_page_image(url, file_path, page_load_time=5):
         required_height = driver.execute_script('return document.body.parentNode.scrollHeight')
         driver.set_window_size(required_width, required_height)
         # driver.save_screenshot(path)  # has scrollbar
-        driver.find_element_by_tag_name('body').screenshot(file_path)  # avoids scrollbar
+        driver.find_element(By.TAG_NAME, 'body').screenshot(file_path)  # avoids scrollbar
     finally:
         if driver:
             driver.quit()
@@ -518,3 +550,240 @@ def chrome_app_store_full_page_screenshots(driver, base_image_path: str) -> List
         actions.send_keys(Keys.PAGE_DOWN).perform()
 
     return saved_images  # Returns the list of taken images
+
+
+appium_presets = {
+    'android_chrome': {
+        'platformName': 'Android',
+        'platformVersion': '11',
+        'automationName': 'uiautomator2',
+        'deviceName': 'Android_Device',
+        'browserName': 'Chrome',
+        'userProfile': '11',
+        'noReset': True
+    },
+    'android_play_store': {
+        'platformName': 'Android',
+        'platformVersion': '11',
+        'automationName': 'uiautomator2',
+        'deviceName': 'Android_Device',
+        'newCommandTimeout': '90',
+        'appPackage': 'com.android.vending',
+        'appActivity': 'com.android.vending.AssetBrowserActivity',
+        'noReset': True
+    },
+    'ios_safari': {
+        "udid": 'auto',
+        "platformName": "iOS",
+        "platformVersion": "14.3",
+        "deviceName": "iPhone",
+        "automationName": "XCUITest",
+        "browserName": "safari",
+        "startIWDP": True
+    },
+    'ios_settings': {
+        "udid": 'auto',
+        "platformName": "iOS",
+        "platformVersion": "14.4",
+        "deviceName": "iPhone",
+        "automationName": "XCUITest",
+        "startIWDP": True,
+        'app': "com.apple.Preferences",
+        'safariInitialUrl': 'https://www.google.com',
+        'newCommandTimeout': '90',
+        'alias': 'settings'
+    },
+    'ios_testflight': {
+        "udid": 'auto',
+        "platformName": "iOS",
+        "platformVersion": "14.3",
+        "deviceName": "iPhone",
+        "automationName": "XCUITest",
+        "startIWDP": True,
+        'app': 'com.apple.TestFlight',
+        'newCommandTimeout': '90',
+        'alias': 'main'
+    }
+}
+
+
+class AppiumDriver(Remote, _DriverTools):
+    """Create a new driver that will issue commands using the wire protocol.
+
+     - launch_attempts - [int] Permitted number of attempts to launch the selenium web driver
+     -----------
+     - command_executor - Either a string representing URL of the remote server or a custom
+         remote_connection.RemoteConnection object. Defaults to 'http://127.0.0.1:4444/wd/hub'.
+     - desired_capabilities - A dictionary of capabilities to request when
+         starting the browser session. Required parameter.
+     - browser_profile - A selenium.webdriver.firefox.firefox_profile.FirefoxProfile object.
+         Only used if Firefox is requested. Optional.
+     - proxy - A selenium.webdriver.common.proxy.Proxy object. The browser session will
+         be started with given proxy settings, if possible. Optional.
+     - keep_alive - Whether to configure remote_connection.RemoteConnection to use
+         HTTP keep-alive. Defaults to False.
+     - file_detector - Pass custom file detector object during instantiation. If None,
+         then default LocalFileDetector() will be used.
+     - options - instance of a driver options.Options class
+    """
+    def __init__(self, preset_name='android_chrome', command_executor='http://localhost:4723/wd/hub', *args, **kwargs):
+        if command_executor:  # This will be used for starting the appium server automatically
+            self.host = command_executor.split('http://', 1)[-1].split('/', 1)[0].split(':', 1)[0]
+            self.port = command_executor.split(self.host, 1)[-1].split(':', 1)[-1].split('/', 1)[0]
+        else:
+            self.host = '127.0.0.1'
+            self.port = '4444'
+        self.launch_attempts = kwargs.pop('launch_attempts', 2)
+        self.dc = kwargs.pop('desired_capabilities', appium_presets.get(preset_name, None))
+        if not self.dc:
+            raise Exception(f'No supported input Capabilities detected. Capabilities: {self.dc}, '
+                            f'Preset: {preset_name}')
+
+        logger.info('Launching Appium remote webdriver')
+        last_exception = None
+        for i in range(self.launch_attempts):
+            try:
+                super().__init__(command_executor=command_executor, desired_capabilities=self.dc, *args, **kwargs)
+                break
+            except Exception as ex:
+                logger.error(ex)
+                last_exception = ex
+                if "No connection could be made because the target machine actively refused it" in str(ex) or\
+                        "[Errno 61] Connection refused" in str(ex):
+                    try:
+                        self.start_appium_server(host=self.host, port=self.port)
+                    except Exception as ex:
+                        logger.error(ex)
+                        last_exception = ex
+
+        else:
+            raise last_exception
+        logger.info('Appium remote webdriver launched successfully')
+        time.sleep(2)
+
+    @staticmethod
+    def start_appium_server(host='localhost', port='4723', ignore_stdout=True):
+        """Starts the appium server via command line. Will skip if the server is already running
+
+        :param host: Host domain / ip for the appium server
+        :param port: Connection port
+        :param ignore_stdout: Filter out the subprocess stdout. Will not print the server output. cleans the log.
+        :return:
+        """
+        if AppiumDriver.is_appium_server_live():
+            logger.info('Appium server already live')
+            return
+        args = {'stdout': subprocess.DEVNULL, 'stderr': subprocess.STDOUT} if ignore_stdout else {}
+        p = subprocess.Popen(
+            f'appium -a {host} -p {port} --allow-insecure chromedriver_autodownload --allow-insecure=adb_shell', shell=True, **args)
+        time.sleep(5)
+        if p.returncode:
+            p.communicate()
+            logger.info(p.stdout)
+            logger.error(p.stderr)
+        if not AppiumDriver.is_appium_server_live():
+            raise Exception('Failed to initiate appium driver')
+
+    @staticmethod
+    def stop_appium_server():
+        """kills the appium server processes via command line"""
+        if AppiumDriver.is_appium_server_live():
+            kill_process_by_cmd('appium', kill_all_instances=True, kill_children=True)
+            time.sleep(1)
+
+    @staticmethod
+    def is_appium_server_live():
+        """Returns True if the appium server is currently running"""
+        for p in psutil.process_iter():
+            try:
+                condition_result = 'appium' in ' '.join(p.cmdline())
+            except Exception as ex:
+                continue
+
+            if condition_result:
+                return True
+        return False
+
+    def gracefully_quit(self):
+        super().gracefully_quit()
+        self.stop_appium_server()
+
+
+class SafariDriver(webdriver.Safari, _DriverTools):
+    NEW_TAB_ADDRESS = ''
+
+    def __init__(self, *args, **kwargs):
+        """Creates a new Safari driver instance and launches or finds a running safaridriver service.
+
+        :Args:
+         - port - The port on which the safaridriver service should listen for new connections. If zero, a free port will be found.
+         - executable_path - Path to a custom safaridriver executable to be used. If absent, /usr/bin/safaridriver is used.
+         - reuse_service - If True, do not spawn a safaridriver instance; instead, connect to an already-running service that was launched externally.
+         - desired_capabilities: Dictionary object with desired capabilities (Can be used to provide various Safari switches).
+         - quiet - If True, the driver's stdout and stderr is suppressed.
+         - keep_alive - Whether to configure SafariRemoteConnection to use
+             HTTP keep-alive. Defaults to False.
+         - service_args : List of args to pass to the safaridriver service
+        """
+        self.launch_attempts = kwargs.pop('launch_attempts', 2)
+        last_exception = None
+        for i in range(self.launch_attempts):
+            try:
+                super().__init__(*args, **kwargs)
+                break
+            except Exception as ex:
+                logger.error(ex)
+                last_exception = ex
+                kill_all_browsers('safari')
+                time.sleep(1)
+        else:
+            raise last_exception
+
+
+class ChromiumEdgeDriver(webdriver.Edge, _DriverTools):
+    NEW_TAB_ADDRESS = ''
+
+    def __init__(self, *args, **kwargs):
+        """
+        Creates a new instance of the edge driver.
+        Starts the service and then creates new instance of edge driver.
+
+        :Args:
+         - executable_path - Deprecated: path to the executable. If the default is used it assumes the executable is in the $PATH
+         - port - Deprecated: port you would like the service to run, if left as 0, a free port will be found.
+         - options - this takes an instance of EdgeOptions
+         - service_args - Deprecated: List of args to pass to the driver service
+         - capabilities - Deprecated: Dictionary object with non-browser specific
+           capabilities only, such as "proxy" or "loggingPref".
+         - service_log_path - Deprecated: Where to log information from the driver.
+         - service - Service object for handling the browser driver if you need to pass extra details
+         - keep_alive - Whether to configure EdgeRemoteConnection to use HTTP keep-alive.
+         - verbose - whether to set verbose logging in the service.
+         """
+        self.launch_attempts = kwargs.pop('launch_attempts', 2)
+        last_exception = None
+
+        self.options = kwargs.pop('options', webdriver.EdgeOptions())
+
+        for arg in kwargs.pop('option_args', []):
+            self.options.add_argument(arg)
+
+        if kwargs.pop('only_current_dir_for_binary', False):
+            binary_location = os.path.join(os.getcwd(), 'msedgedriver{ext}'.format(
+                ext=".exe" if sys.platform == "win32" else ""))
+        else:
+            binary_location = None
+        service_obj = EdgeService(binary_location)
+
+        logger.info('Launching Chromium Edge webdriver')
+        for i in range(self.launch_attempts):
+            try:
+                super().__init__(*args, **{'options': self.options, 'service': service_obj}, **kwargs)
+                break
+            except Exception as ex:
+                logger.error(ex)
+                last_exception = ex
+                kill_all_browsers('msedge')
+                time.sleep(1)
+        else:
+            raise last_exception
