@@ -1,0 +1,2 @@
+class QaseUtils:
+    pass
