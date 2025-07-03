@@ -20,3 +20,4 @@ proxmoxer
 looseversion
 scp
 Appium-Python-Client
+qase-api-client
