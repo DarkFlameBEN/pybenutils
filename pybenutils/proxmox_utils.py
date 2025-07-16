@@ -24,6 +24,10 @@ class Proxmox(ProxmoxAPI):
         self.host = host if host else os.environ.get("PROXMOX_HOST", '')
         self.user = user if user else os.environ.get("PROXMOX_USER", '')
         self.password = password if password else os.environ.get("PROXMOX_PASS", '')
+        assert self.host, 'Proxmox host is required'
+        assert self.user, 'Proxmox user is required'
+        assert self.password, 'Proxmox user password is required'
+
         self.verify_ssl = False
         self.clone_output_file = 'new_vms.json'
 
