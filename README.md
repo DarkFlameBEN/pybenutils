@@ -9,6 +9,22 @@
 ## Introduction
 PyBEN Utilities repository contains a variety of useful methods and classes designed to allow easy access to high-level operations 
 
+## Table of contents
+1. [Getting started](#getting-started)
+2. [Modules and Classes](#modules-and-classes)
+   1. [AutoGUI module](#autogui-module)
+   2. [simple_browser_controller_cls.py](#simple_browser_controller_cls)
+      - [SimpleBrowserController](#simpleBrowserController)
+      - [kill_all_browsers](#kill_all_browsers)
+      - [close_all_browsers](#close_all_browsers)
+   3. [selenium_utils.py](#selenium_utils)
+      - [get_driver](#get_driver)
+   4. [download_manager](#download_manager)
+      - [download_url](#download_url)
+   5. [ssh_utils](#ssh_utils)
+      - [run_commands](#run_commands)
+   6. [proxmox_utils](#proxmox_utils)
+
 ## Getting started
 
 ### Installation
@@ -79,7 +95,7 @@ class AutoGui(builtins.object)
  |      Return position as tuple (xl, yt, xr, yb) in windows / (x, y) in mac
 ```
 
-### simple_browser_controller_cls.py
+### simple_browser_controller_cls
 #### SimpleBrowserController
 The Simple Browser Controller is a class to help directly control the host browser using keyboard inputs
 
@@ -108,7 +124,9 @@ Closes and kills all the process sharing the given process names in the input li
 #### close_all_browsers
 Closes all the process sharing the given process names in the input list
 
-### selenium_utils.py
+### selenium_utils
+selenium_utils.py
+
 #### get_driver
 ```
 Returns an active web driver instance
@@ -163,7 +181,7 @@ FirefoxDriver class new Kwargs
 - only_current_dir_for_binary - [Boolean] Assume the binary HAS to be in the current working directory
 ```
 
-### download_manager.py
+### download_manager
 #### download_url
 ```
 Downloads a URL content into a file (with large file support by streaming)
@@ -176,7 +194,7 @@ Downloads a URL content into a file (with large file support by streaming)
 :return: New file path. Empty string if the download_url failed
 ```
 
-### ssh_utils.py
+### ssh_utils
 #### run_commands
 ```
 Execute the given commands trough ssh connection
@@ -196,9 +214,12 @@ Execute the given commands trough ssh connection
 :return: List of return objects [{'ssh_stdin': str, 'ssh_stdout': str, 'ssh_stderr': str}]
 ```
 
-### proxmox_utils.py
-#### Proxmox class
-Helper class based on Proxmoxer ProxmoxAPI making work a lot easier
+### proxmox_utils
+#### ProxmoxCls class
+PyBEN Proxmox repository is an easy to use python utility class for Proxmox server solution
+
+![Static Badge](https://img.shields.io/badge/pybenproxmox-blue?link=https%3A%2F%2Fpypi.org%2Fproject%2Fpybenproxmox%2F)
+[![PyPI - Version](https://img.shields.io/pypi/v/pybenproxmox)](https://pypi.org/project/pybenproxmox/)
 
 Some of the included functions:
  - get_vms: Returns a full list of vms, or list with matching vms by id or name
