@@ -125,8 +125,6 @@ Closes and kills all the process sharing the given process names in the input li
 Closes all the process sharing the given process names in the input list
 
 ### selenium_utils
-selenium_utils.py
-
 #### get_driver
 ```
 Returns an active web driver instance
