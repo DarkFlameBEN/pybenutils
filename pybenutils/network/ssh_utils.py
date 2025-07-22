@@ -2,7 +2,7 @@ import platform
 import sys
 import json
 import argparse
-from typing import List, Union
+from typing import List
 from scp import SCPClient
 
 from pybenutils.useful import str2bool
@@ -23,7 +23,7 @@ def run_commands(server: str,
                  commands: List[str],
                  stop_on_exception=False,
                  stop_on_error=False):
-    """Execute the given commands trough ssh connection
+    """Execute the given commands through ssh connection
 
      Special commands:
       - RECURSIVE-PUT file_path/folder_path [To local_path] - Copy the target from remote to local recursively
