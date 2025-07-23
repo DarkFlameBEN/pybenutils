@@ -2,6 +2,8 @@ import sys
 import time
 from pathlib import Path
 from typing import List
+
+import pyperclip
 from psutil import NoSuchProcess
 from pybenutils.utils_logger.config_logger import get_logger
 from pybenutils.os_operations.process import ProcessHandler
@@ -273,6 +275,38 @@ class SimpleBrowserController:
             logger.error(f'Failed to send keys for error: {ex}')
             return False
         return True
+
+    def get_browser_url(self) -> bool:
+        """Get Browser URL
+
+        :return: True if successful
+        """
+        try:
+            if sys.platform == 'win32':
+                shell = win32com.client.Dispatch("WScript.Shell")
+                shell.SendKeys("{F6}", 1)
+            else:
+                return self.press_key_combination_on_mac_browser('key code 97 using option down')
+        except Exception as ex:
+            logger.error(f'Failed to press on the F6 button for error: {ex}')
+            return False
+        time.sleep(2)
+        try:
+            if sys.platform == 'win32':
+                shell = win32com.client.Dispatch("WScript.Shell")
+                shell.SendKeys("^c", 1)
+            else:
+                return self.press_key_combination_on_mac_browser('keystroke "c" using command down')
+        except Exception as ex:
+            logger.error(f'Failed to copy browser URL (Ctrl/Cmd+C) for error: {ex}')
+            return False
+        time.sleep(2)
+        try:
+            copied_text = pyperclip.paste()
+            return copied_text
+        except Exception as ex:
+            logger.error(f'Failed to read clipboard: {ex}')
+            return False
 
     def set_browser_url(self, url) -> bool:
         """Input the given url into the browser search line and press ENTER
