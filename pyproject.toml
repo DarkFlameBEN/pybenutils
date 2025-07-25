@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pybenutils"
-version = "7.2.1"
+version = "7.3.0"
 description = "PyBEN Utilities repository contains a variety of useful methods and classes designed to allow easy access to high-level operations"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -55,6 +55,7 @@ dependencies = [
   "looseversion",
   "scp",
   "Appium-Python-Client",
+  "pyperclip",
 
   # Platform-specific dependencies
   "pywin32; sys_platform == 'win32'",
