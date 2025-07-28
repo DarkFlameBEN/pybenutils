@@ -66,15 +66,16 @@ def run_commands(server: str,
                     print(transition_responses[-1])
             else:
                 ssh_stdin, ssh_stdout, ssh_stderr = ssh.exec_command(command)
-                stdout = ssh_stdout.readlines()
+                stdout = ssh_stdout.read().decode()
+                stderr = ssh_stderr.read().decode()
                 transition_responses.append({'ssh_stdin': command,
                                              'ssh_stdout': stdout,
-                                             'ssh_stderr': 'Not Implemented'})
+                                             'ssh_stderr': stderr})
                 try:
                     print(transition_responses[-1])
                 except Exception as e:
                     print(e)
-                if stop_on_error and ssh_stderr:
+                if stop_on_error and stderr:
                     break
         except Exception as ex:
             transition_responses.append({'ssh_stdin': command, 'ssh_stdout': '', 'ssh_stderr': str(ex)})
