@@ -20,4 +20,5 @@ proxmoxer
 looseversion
 scp
 Appium-Python-Client
+pyperclip
 qase-api-client

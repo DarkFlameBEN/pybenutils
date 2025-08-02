@@ -1,3 +1,6 @@
+import subprocess
+import sys
+
 from pybenutils.utils_logger.config_logger import get_logger
 
 logger = get_logger()
@@ -67,3 +70,11 @@ def str2bool(v) -> bool:
         return False
     else:
         return False
+
+def install_pip_package_using_pip(package_path):
+    """Install pip package """
+    print(f'Installing {package_path = }')
+    cmd = [sys.executable, "-m", "pip", "install", package_path, "-U"]
+    complete_proc = subprocess.run(cmd, check=False)
+    if complete_proc.returncode:
+        print(f"{' '.join(cmd)} failed with exit code {complete_proc.returncode}.")
