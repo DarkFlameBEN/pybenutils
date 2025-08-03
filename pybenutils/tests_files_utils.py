@@ -6,7 +6,7 @@ from typing import Dict, List
 
 
 def get_qase_id(test_function):
-    """Extract Qase ID from a test function if it has @qase.id decorator."""
+    """Extract Qase ID from a test function if it has a 'qase.id' decorator."""
     if hasattr(test_function, "pytestmark"):
         marks = test_function.pytestmark
         for mark in marks:
@@ -47,10 +47,8 @@ def extract_tests_from_file(full_file_path, import_path):
     return file_index
 
 
-def get_pytest_files_index(search_dir = '') -> List[Dict]:
+def get_pytest_files_index(search_dir = os.getcwd()) -> List[Dict]:
     """Returns an object of all the test files"""
-    if not search_dir:
-        search_dir = os.getcwd()
     base_dir = os.getcwd()
     if os.path.basename(base_dir) == 'docs':
         base_dir = os.path.dirname(base_dir)
@@ -68,7 +66,7 @@ def get_pytest_files_index(search_dir = '') -> List[Dict]:
     return full_index
 
 
-def get_uuid_index(search_dir = '', validate_integrity=False):
+def get_uuid_index(search_dir = os.getcwd(), validate_integrity=False):
     """Returns an object of all the test cases index by uuid
 
     :param search_dir: Root directory to search for test cases
