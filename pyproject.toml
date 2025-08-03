@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pybenutils"
-version = "7.4.1"
+version = "7.5.0"
 description = "PyBEN Utilities repository contains a variety of useful methods and classes designed to allow easy access to high-level operations"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -30,7 +30,6 @@ classifiers = [
   "Intended Audience :: Developers",
   "Topic :: Software Development :: Libraries",
   "Operating System :: OS Independent",
-  "Programming Language :: Python :: 3.7",
   "Programming Language :: Python :: 3.8",
   "Programming Language :: Python :: 3.9",
   "Programming Language :: Python :: 3.10",
@@ -52,7 +51,6 @@ dependencies = [
   "pyOpenSSL",
   "cryptography",
   "pyautogui",
-  "proxmoxer",
   "looseversion",
   "scp",
   "Appium-Python-Client",
