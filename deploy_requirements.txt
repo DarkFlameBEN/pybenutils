@@ -3,6 +3,5 @@ setuptools
 wheel
 pip
 pytest
-pytest-pep8
 twine
 build
