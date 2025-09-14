@@ -305,7 +305,7 @@ class SimpleBrowserController:
             browser_url = pyperclip.paste()
         except Exception as ex:
             logger.error(f'Failed to read clipboard: {ex}')
-        return browser_url
+        return browser_url if browser_url else ''  # Fix None type return bug
 
     def set_browser_url(self, url) -> bool:
         """Input the given url into the browser search line and press ENTER
