@@ -71,7 +71,6 @@ Homepage = "https://github.com/DarkFlameBEN/pybenutils.git"
 exclude = ["tests"]
 
 [tool.pytest.ini_options]
-pep8maxlinelength = 120
 python_classes = ["*Suite"]
 python_functions = ["test_*"]
 testpaths = ["tests"]
