@@ -58,6 +58,7 @@ def compare_nested_objects(obj1, obj2):
                     total_of_mismatched_found += compare_nested_objects(obj1[obj1_key], obj2[obj1_key])
     return total_of_mismatched_found
 
+
 def str2bool(v) -> bool:
     """Converts the given variable to boolean"""
     if isinstance(v, bool): # test bool before int because bool is int
@@ -71,10 +72,18 @@ def str2bool(v) -> bool:
     else:
         return False
 
-def install_pip_package_using_pip(package_path):
-    """Install pip package """
+
+def install_pip_package_using_pip(package_path, *args):
+    """Install pip package
+
+    :param package_path: Path to pip package / Package name
+    :param args: Extra arguments to pip install like --extra-index-url & --trusted-host
+    :return: True if successful (exit code 0)
+    """
     print(f'Installing {package_path = }')
-    cmd = [sys.executable, "-m", "pip", "install", package_path, "-U"]
+    cmd = [sys.executable, "-m", "pip", "install", package_path, "-U"] + list(args)
     complete_proc = subprocess.run(cmd, check=False)
     if complete_proc.returncode:
         print(f"{' '.join(cmd)} failed with exit code {complete_proc.returncode}.")
+        return False
+    return True
