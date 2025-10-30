@@ -24,6 +24,7 @@ PyBEN Utilities repository contains a variety of useful methods and classes desi
    5. [ssh_utils](#ssh_utils)
       - [run_commands](#run_commands)
    6. [proxmox_utils](#proxmox_utils)
+   7. [cli_tools](#cli_tools)
 
 ## Getting started
 
@@ -228,6 +229,25 @@ Some of the included functions:
  - stop_vm
  - snapshot handling
  - and more ...
+
+### cli_tools
+#### Use in class directory __main__.py file:
+```python
+from pybenutils.cli_tools import cli_main_for_class
+from cls_file import ClassName
+
+def main():
+    cli_main_for_class(ClassName)
+
+main()
+```
+
+#### Use in script file:
+```python
+if __name__ == '__main__':
+    from pybenutils.cli_tools import cli_main_for_class
+    cli_main_for_class(ClassName)
+```
 
 ### More functions
 There are a lot of additional functions i have created over the years. Look around and find some treasures

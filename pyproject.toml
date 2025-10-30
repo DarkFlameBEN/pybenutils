@@ -1,10 +1,10 @@
 [build-system]
-requires = ["setuptools>=62.6", "wheel"]
+requires = ["setuptools>=62.6"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "pybenutils"
-version = "7.6.0"
+version = "7.7.0"
 description = "PyBEN Utilities repository contains a variety of useful methods and classes designed to allow easy access to high-level operations"
 readme = "README.md"
 requires-python = ">=3.8"
