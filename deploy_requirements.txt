@@ -2,6 +2,5 @@ requests
 setuptools
 wheel
 pip
-pytest
 twine
 build
