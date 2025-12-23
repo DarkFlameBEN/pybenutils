@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pybenutils"
-version = "7.8.0"
+version = "7.9.0"
 description = "PyBEN Utilities repository contains a variety of useful methods and classes designed to allow easy access to high-level operations"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -38,30 +38,28 @@ classifiers = [
   "Programming Language :: Python :: 3.13"
 ]
 dependencies = [
-  "requests",
-  "supertools",
-  "boto3",
-  "psutil", # Note: Pin to 3.4.2 on Windows XP manually if needed
-  "selenium",
-  "multiprocess",
-  "boto",
-  "pysocks",
-  "typing",
-  "idna",
-  "pyOpenSSL",
-  "cryptography",
-  "pyautogui",
-  "looseversion",
-  "scp",
-  "Appium-Python-Client",
-  "pyperclip",
-
-  # Platform-specific dependencies
-  "pywin32; sys_platform == 'win32'",
-  "pypiwin32; sys_platform == 'win32'",
-  "pynput; sys_platform != 'linux'",
-  "paramiko; platform_machine != 'ARM64'",
-  "pywinauto; sys_platform == 'win32'"
+  "requests>=2.32.5",
+  "supertools>=1.0.1",
+  "boto3>=1.42.15",
+  "psutil>=7.1.3", # Note: Pin to 3.4.2 on Windows XP manually if needed
+  "selenium>=4.39.0",
+  "multiprocess>=0.70.18",
+  "boto>=2.49.0",
+  "pysocks>=1.7.1",
+  "typing>=3.7.4.3",
+  "idna>=3.11",
+  "pyOpenSSL>=25.3.0",
+  "cryptography>=46.0.3",
+  "pyautogui>=0.9.54",
+  "looseversion>=1.3.0",
+  "scp>=0.15.0",
+  "Appium-Python-Client>=5.2.4",
+  "pyperclip>=1.11.0",
+  "pywin32>=311; sys_platform == 'win32'",
+  "pypiwin32>=223; sys_platform == 'win32'",
+  "pynput>=1.8.1; sys_platform != 'linux'",
+  "paramiko>=4.0.0; platform_machine != 'ARM64'",
+  "pywinauto>=0.6.9; sys_platform == 'win32'"
 ]
 
 [project.urls]
