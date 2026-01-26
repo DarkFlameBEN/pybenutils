@@ -18,7 +18,7 @@ def download_url(url: str, file_path='', attempts=2, raise_failure=True, verify_
     :return: New file path. Empty string if the download_url failed
     """
     if not file_path:
-        file_path = os.path.realpath(os.path.basename(url))
+        file_path = os.path.realpath(os.path.basename(url.rsplit('?', 1)[0]))
     logger.info(f'Downloading {url} content to {file_path}')
     url_sections = urlparse(url)
     if not url_sections.scheme:
