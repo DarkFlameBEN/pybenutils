@@ -23,7 +23,7 @@ def run_commands(server: str,
                  commands: List[str],
                  stop_on_exception=False,
                  stop_on_error=False,
-                 port=22):
+                 **kwargs):
     """Execute the given commands through ssh connection
 
      Special commands:
@@ -38,14 +38,14 @@ def run_commands(server: str,
     :param commands: List of commands to execute
     :param stop_on_exception: Will stop executing commands if an exception occurred
     :param stop_on_error: Will stop executing commands if an execution returned an stderr string
-    :param port: SSH port, default is 22
+    :param kwargs: Arguments to pass to ssh.connect
     :return: List of return objects [{'ssh_stdin': str, 'ssh_stdout': str, 'ssh_stderr': str}]
     """
     transition_responses = []
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(AutoAddPolicy())
     print(f'Connecting to {server}')
-    ssh.connect(server, username=username, password=password, port=port)
+    ssh.connect(server, username=username, password=password, **kwargs)
     for command in commands:
         try:
             if command.startswith('RECURSIVE-GET') or command.startswith('GET'):
