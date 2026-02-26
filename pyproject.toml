@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "pybenutils"
-version = "7.9.3"
+version = "7.10.0"
 description = "PyBEN Utilities repository contains a variety of useful methods and classes designed to allow easy access to high-level operations"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -46,7 +46,6 @@ dependencies = [
   "multiprocess>=0.70.18",
   "boto>=2.49.0",
   "pysocks>=1.7.1",
-  "typing>=3.7.4.3",
   "idna>=3.11",
   "pyOpenSSL>=25.3.0",
   "cryptography>=46.0.3",
