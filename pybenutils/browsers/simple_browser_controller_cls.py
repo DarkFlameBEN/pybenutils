@@ -17,11 +17,6 @@ if sys.platform == 'win32':
     import win32gui
 elif sys.platform == 'darwin':
     from pybenutils.os_operations.mac_operations import run_apple_script
-elif sys.platform == 'linux':
-    # Mac helpers are not imported on Linux - we use xdotool/xdg-open instead.
-    # All osascript-based paths are bypassed by explicit `elif sys.platform == 'linux'`
-    # branches added throughout this module.
-    pass
 
 logger = get_logger()
 
@@ -251,9 +246,6 @@ class SimpleBrowserController:
         if sys.platform == 'darwin':
             from pybenutils.os_operations.mac_application_control import ApplicationControl
             self.app_obj = ApplicationControl(self.mac_browser_path)
-        elif sys.platform == 'linux':
-            # No equivalent ApplicationControl on Linux; we manage via subprocess + xdotool.
-            self.app_obj = None
         else:
             self.class_name = class_name_windows_conversion_table[self.browser_process_name] if \
                 self.browser_process_name in class_name_windows_conversion_table else ''
