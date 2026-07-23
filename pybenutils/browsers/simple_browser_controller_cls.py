@@ -629,7 +629,7 @@ class SimpleBrowserController:
                 # Ctrl+L focuses the address bar in Chrome/Firefox on Linux (F6 also works)
                 self.press_key_on_linux_browser('ctrl+l')
             else:
-                self.press_key_combination_on_mac_browser('key code 97 using option down')
+                self.press_key_combination_on_mac_browser('key code 37 using command down')
         except Exception as ex:
             logger.error(f'Failed to press on the F6 button for error: {ex}')
             return browser_url
