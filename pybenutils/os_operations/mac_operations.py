@@ -123,6 +123,38 @@ def run_apple_script(cmd, timeout=300):
         return None
 
 
+def get_front_window_bounds(app_name):
+    """Return the position and size of the front window of the given macOS app.
+
+    Runs an AppleScript that activates the app and asks System Events for the
+    front window's position and size.
+
+    :param app_name: The macOS application name (e.g. "Google Chrome")
+    :return: Tuple (x, y, w, h) or None if the app / window was not found
+    """
+    cmd = f'''
+    set appName to "{app_name}"
+    tell application "System Events"
+        if (name of processes) contains appName then
+            tell application appName to activate
+            delay 0.2
+            tell process appName
+                if (count of windows) > 0 then
+                    set winPos to position of front window
+                    set winSize to size of front window
+                    return ((item 1 of winPos) as string) & "," & ((item 2 of winPos) as string) & "," & ((item 1 of winSize) as string) & "," & ((item 2 of winSize) as string)
+                end if
+            end tell
+        end if
+    end tell
+    return ""
+    '''
+    result = run_apple_script(cmd)
+    if not result:
+        return None
+    return tuple(int(v) for v in result.split(','))
+
+
 def mount_image_mac(image_path, raise_on_error=False, space_in_name=True):
     """Mount image in macOS
 

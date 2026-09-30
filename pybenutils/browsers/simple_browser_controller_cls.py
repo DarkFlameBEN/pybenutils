@@ -16,7 +16,7 @@ if sys.platform == 'win32':
     import win32com.client
     import win32gui
 elif sys.platform == 'darwin':
-    from pybenutils.os_operations.mac_operations import run_apple_script
+    from pybenutils.os_operations.mac_operations import run_apple_script, get_front_window_bounds
 
 logger = get_logger()
 
@@ -727,8 +727,23 @@ class SimpleBrowserController:
             # xdotool windowactivate is the closest analogue: brings window to front + focus.
             return self._linux_focus_browser()
         else:
-            print('Not yet implemented')
-            return False
+            try:
+                bounds = get_front_window_bounds(self.browser_name)
+                if not bounds:
+                    return False
+                x, y, w, h = bounds
+                # Click just below the title bar, near the top-left of the window's content area
+                click_x = x + min(10, max(1, w - 1))
+                click_y = y + min(130, max(1, h - 1))
+                from pynput.mouse import Button, Controller
+                mouse = Controller()
+                mouse.position = (click_x, click_y)
+                mouse.press(Button.left)
+                mouse.release(Button.left)
+                return True
+            except Exception as ex:
+                logger.error(f'Failed to set focus by mouse click on mac: {ex}')
+                return False
 
     def send_console_command(self, command: str):
         """Sends console commands to the browser using keyboard navigation"""
