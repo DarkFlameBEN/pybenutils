@@ -3,18 +3,17 @@ import time
 import posixpath
 import threading
 from glob import glob
-from boto.s3.key import Key
 from typing import List, Union
-from boto import log as boto_log
+
+import boto3
+from botocore.exceptions import ClientError
+
 from pybenutils.utils_logger.config_logger import get_logger
-from boto.exception import S3ResponseError
-from boto.s3.connection import S3Connection
 from multiprocessing.dummy import Pool as ThreadPool
 from pybenutils.os_operations.files_and_directories import get_files_in_folder
 
 logger = get_logger()
 lock = threading.Lock()
-boto_log.setLevel('WARNING')  # Added because boto prints passwords
 
 
 class S3BucketManager(object):
@@ -29,15 +28,17 @@ class S3BucketManager(object):
         :param password:  Aws password
         :param bucket_name: Bucket name
         """
-        self.conn = S3Connection(aws_access_key_id=key, aws_secret_access_key=password)
+        self.s3 = boto3.resource('s3', aws_access_key_id=key, aws_secret_access_key=password)
+        self.client = self.s3.meta.client
         self.bucket_name = bucket_name
+        self.bucket_obj = self.s3.Bucket(self.bucket_name)
         try:
-            self.bucket_obj = self.conn.get_bucket(self.bucket_name)
-        except S3ResponseError as conn_err:
-            if conn_err.message.lower() == 'access denied':
+            self.client.head_bucket(Bucket=self.bucket_name)
+        except ClientError as conn_err:
+            error_code = conn_err.response.get('Error', {}).get('Code', '')
+            if error_code in ('403', 'AccessDenied'):
                 raise AssertionError(f'Access denied for bucket "{bucket_name}": {str(conn_err)}')
-            else:
-                raise conn_err
+            raise
 
     def upload_file(self, source, destination, public=True):
         """Upload source to s3 server.
@@ -52,11 +53,11 @@ class S3BucketManager(object):
         for attempt in range(attempts):
             try:
                 logger.info(f"upload from {source} to {destination}")
-                k = self.bucket_obj.new_key(posixpath.join(destination, os.path.basename(source.strip())))
-                k.set_contents_from_filename(source)
-                if public:
-                    k.make_public()
-                uploaded_file_url = 'http://{bucket}.s3.amazonaws.com/{key}'.format(bucket=self.bucket_name, key=k.key)
+                key_name = posixpath.join(destination, os.path.basename(source.strip()))
+                extra_args = {'ACL': 'public-read'} if public else {}
+                self.bucket_obj.upload_file(Filename=source, Key=key_name, ExtraArgs=extra_args)
+                uploaded_file_url = 'http://{bucket}.s3.amazonaws.com/{key}'.format(
+                    bucket=self.bucket_name, key=key_name)
                 logger.info('Successfully uploaded to {url}'.format(url=uploaded_file_url))
                 return uploaded_file_url
             except Exception as ex:
@@ -143,7 +144,7 @@ class S3BucketManager(object):
         :param s3_folder: S3 folder to examine
         :return: A list of relative paths of the objects insides the input folder
         """
-        return [key.key for key in self.bucket_obj.list(prefix=s3_folder)]
+        return [obj.key for obj in self.bucket_obj.objects.filter(Prefix=s3_folder)]
 
     def download_file(self, source, destination):
         """Download source from s3 server. if destination is a file, the download file path will be the same. If it's a
@@ -167,9 +168,7 @@ class S3BucketManager(object):
         if not os.path.exists(destination_dir):
             return
 
-        k = Key(self.bucket_obj)
-        k.key = source
-        k.get_contents_to_filename(dest_file_path)
+        self.bucket_obj.download_file(Key=source, Filename=dest_file_path)
         return dest_file_path
 
     def download(self, source_list, destination):
@@ -195,12 +194,11 @@ class S3BucketManager(object):
         download_details_list = []
         for source in source_list:
             source = source.strip('/')
-            k = self.bucket_obj.get_key(source)  # check if source is a file (s3 key) or a folder
-            if k:
+            if self._key_exists(source):  # check if source is a file (s3 key) or a folder
                 download_details_list.append((source, destination))
             else:  # source is a folder
-                for key in self.bucket_obj.list(prefix=source):
-                    relative_url = key.key
+                for obj in self.bucket_obj.objects.filter(Prefix=source):
+                    relative_url = obj.key
                     sub_folder = os.path.dirname(relative_url).split(source)[-1].strip('/')
                     destination = os.path.join(destination, sub_folder) if sub_folder else destination
                     download_details_list.append((relative_url, destination))
@@ -216,4 +214,14 @@ class S3BucketManager(object):
 
         :param key_to_delete: Folder or file path to delete
         """
-        self.bucket_obj.delete_key(key_to_delete)
+        self.s3.Object(self.bucket_name, key_to_delete).delete()
+
+    def _key_exists(self, key):
+        """Return True if the given key exists as an object in the bucket."""
+        try:
+            self.client.head_object(Bucket=self.bucket_name, Key=key)
+            return True
+        except ClientError as err:
+            if err.response.get('Error', {}).get('Code') in ('404', 'NoSuchKey', 'NotFound'):
+                return False
+            raise
