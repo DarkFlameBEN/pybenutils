@@ -10,16 +10,6 @@ from logging.handlers import RotatingFileHandler
 INITIALIZED = defaultdict(bool)
 
 
-class StepLogger(logging.Logger):
-
-    def step(self, message, *args, **kwargs):
-        if self.isEnabledFor(logging.INFO):
-            self._log(logging.INFO, '[STEP] %s' % message, args, **kwargs)
-
-
-logging.setLoggerClass(StepLogger)
-
-
 def set_logger(logger_name):
     logger = logging.getLogger(logger_name)
 
@@ -51,7 +41,7 @@ def get_logger(logger_name='main_logger'):
     """Returns a logger object with a given title.
 
     :param logger_name: If empty the logger name will be based on the calling module
-    :return: StepLogger object (supports .step() in addition to standard levels)
+    :return: logging.Logger object
     """
     if not logger_name:
         frame = inspect.stack()[1]
