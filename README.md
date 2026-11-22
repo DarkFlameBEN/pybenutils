@@ -249,5 +249,13 @@ if __name__ == '__main__':
     cli_main_for_class(ClassName)
 ```
 
+#### Factory classes / pre-built instances:
+You can pass an instance instead of a class. Use this for factory classes whose `__new__` returns
+another class (for example, an OS-specific subclass), so that `ls`/`help`/`doc` show the real class's methods.
+Constructor `key=value` params are ignored when you pass an instance.
+```python
+cli_main_for_class(AWC())  # AWC.__new__ returns AWCWindows / AWCMac / AWCLinux
+```
+
 ### More functions
 There are a lot of additional functions i have created over the years. Look around and find some treasures
