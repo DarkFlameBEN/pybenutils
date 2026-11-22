@@ -100,7 +100,11 @@ def execute_class(cls_obj: Any, class_params: Dict, args: Sequence[str] = ()):
     method = getattr(target_obj, method_name)
 
     if not callable(method):
-        print(f"'{method_name}' is not callable.", file=sys.stderr)
+        # Properties / attributes: print the value (e.g. "python -m package version")
+        if not parameters and not parameters_dict:
+            print(method)
+            return
+        print(f"'{method_name}' is not callable and does not accept params.", file=sys.stderr)
         print(help_str)
         return
 
